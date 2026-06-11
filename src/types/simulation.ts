@@ -44,9 +44,17 @@ export interface SimRecipeOption {
 
 export interface SimulationSettings {
   maxTier: string;
-  maxDepth: number;
   maxOptions: number;
-  maxRecipesPerResource: number;
+  maxDepth?: number;
+}
+
+export interface SimulationProgress {
+  phase: 'loading' | 'cache' | 'solving' | 'scaling' | 'done';
+  message: string;
+  resourcesVisited: number;
+  recipesChecked: number;
+  cacheHits: number;
+  currentResource?: string;
 }
 
 export interface SimulationResult {
@@ -54,4 +62,5 @@ export interface SimulationResult {
   amount: number;
   options: SimRecipeOption[];
   warnings: string[];
+  fromCache: boolean;
 }

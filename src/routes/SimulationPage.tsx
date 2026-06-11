@@ -11,6 +11,7 @@ import CraftingRecipeCard from '../components/recipes/CraftingRecipeCard';
 import SmeltingRecipeCard from '../components/recipes/SmeltingRecipeCard';
 import ItemSlot from '../components/recipes/ItemSlot';
 import FluidSlot from '../components/recipes/FluidSlot';
+import type { SimulationProgress } from '../types/simulation';
 
 interface ItemSearchEntry {
   displayName?: string;
@@ -182,11 +183,11 @@ function SimulationPage() {
   const [target, setTarget] = useState<SimResource>(DEFAULT_TARGET);
   const [amount, setAmount] = useState('1');
   const [maxTier, setMaxTier] = useState('HV');
-  const [maxDepth, setMaxDepth] = useState('12');
   const [maxOptions, setMaxOptions] = useState('4');
   const [itemSearchData, setItemSearchData] = useState<ItemSearchEntry[]>([]);
   const [fluidSearchData, setFluidSearchData] = useState<FluidSearchEntry[]>([]);
   const [result, setResult] = useState<SimulationResult | null>(null);
+  const [progress, setProgress] = useState<SimulationProgress | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -231,13 +232,18 @@ function SimulationPage() {
     }
     setLoading(true);
     setError(null);
+    setProgress({
+      phase: 'loading',
+      message: 'Starting simulation...',
+      resourcesVisited: 0,
+      recipesChecked: 0,
+      cacheHits: 0,
+    });
     try {
       const simulation = await simulateRecipeChain(target, numericAmount, {
         maxTier,
-        maxDepth: Math.max(1, Number(maxDepth) || 12),
         maxOptions: Math.max(1, Number(maxOptions) || 4),
-        maxRecipesPerResource: Math.max(1, Number(maxOptions) || 4),
-      });
+      }, setProgress);
       setResult(simulation);
     } catch (err) {
       setError((err as Error).message);
@@ -255,7 +261,7 @@ function SimulationPage() {
       </div>
 
       <div className="rounded-lg border border-gray-700 bg-gray-800 p-5">
-        <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]">
+        <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
           <div className="relative">
             <label className="mb-1 block text-sm font-medium text-gray-300">Target</label>
             <input
@@ -308,15 +314,6 @@ function SimulationPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-300">Depth</label>
-            <input
-              value={maxDepth}
-              onChange={event => setMaxDepth(event.target.value)}
-              className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-gray-100 outline-none focus:border-cyan-500"
-            />
-          </div>
-
-          <div>
             <label className="mb-1 block text-sm font-medium text-gray-300">Options</label>
             <input
               value={maxOptions}
@@ -336,7 +333,30 @@ function SimulationPage() {
             </button>
           </div>
         </div>
+
+        <div className="mt-3 text-xs text-gray-500">
+          Depth is automatic. The simulator checks every recipe at or below the selected stage, then caches the solved unit chain so later amounts can be scaled quickly.
+        </div>
       </div>
+
+      {progress && (
+        <div className="rounded border border-gray-700 bg-gray-800 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2 text-sm text-gray-200">
+              {loading && <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />}
+              <span className="truncate">{progress.message}</span>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs text-gray-400">
+              <span>{progress.resourcesVisited.toLocaleString()} resources</span>
+              <span>{progress.recipesChecked.toLocaleString()} recipes checked</span>
+              {progress.cacheHits > 0 && <span>{progress.cacheHits.toLocaleString()} cache hits</span>}
+            </div>
+          </div>
+          {progress.currentResource && (
+            <div className="mt-1 text-xs text-gray-500">Current: {progress.currentResource}</div>
+          )}
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center gap-2 rounded border border-red-800 bg-red-950/40 px-4 py-3 text-red-300">
@@ -347,6 +367,12 @@ function SimulationPage() {
 
       {result && (
         <div className="space-y-5">
+          <div className="rounded border border-gray-700 bg-gray-800 px-4 py-3 text-sm text-gray-300">
+            {result.fromCache
+              ? 'Loaded cached unit chain and scaled it to the requested amount.'
+              : `Checked current recipes and cached the solved unit chain for ${result.target.displayName}.`}
+          </div>
+
           {result.warnings.length > 0 && (
             <div className="rounded border border-yellow-900 bg-yellow-950/30 px-4 py-3 text-sm text-yellow-200">
               {result.warnings.map(warning => <div key={warning}>{warning}</div>)}
