@@ -5,12 +5,14 @@ import { Package, Droplet, Wrench, Atom } from 'lucide-react';
 
 function HomePage() {
   const [stats, setStats] = useState<any>(null);
+  const [modpackVersion, setModpackVersion] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadMetadata()
       .then(metadata => {
         setStats(metadata.stats);
+        setModpackVersion(metadata.modpackVersion || null);
         setLoading(false);
       })
       .catch(error => {
@@ -101,7 +103,7 @@ function HomePage() {
       <div className="bg-gray-800 rounded-lg shadow-md p-8 border border-gray-700">
         <h2 className="text-2xl font-bold text-gray-100 mb-4">About</h2>
         <p className="text-gray-400 mb-4">
-          This reference contains (almost) every single recipe in the Supersymmetry modpack (as of v0.1.16.7.1), along with all of its items and fluids.
+          This reference contains (almost) every single recipe in the Supersymmetry modpack{modpackVersion ? ` as of v${modpackVersion}` : ''}, along with all of its items and fluids.
         </p>
         <ul className="list-disc list-inside text-gray-400 space-y-2">
           <li>{stats?.items.toLocaleString()} unique items</li>

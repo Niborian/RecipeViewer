@@ -1081,6 +1081,7 @@ async function processRecipeDump() {
   // Create metadata file
   const metadata = {
     version: '1.0.0',
+    modpackVersion: oreSourceIndex?.modpackVersion || null,
     timestamp: new Date().toISOString(),
     stats,
   };
