@@ -1,0 +1,23 @@
+services:
+  recipeviewer:
+    build:
+      context: .
+      args:
+        RECIPEVIEWER_BASE: /
+    image: recipeviewer:latest
+    container_name: recipeviewer
+    restart: unless-stopped
+    networks:
+      - uni
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=uni
+      - traefik.http.routers.supersim.rule=Host(`supersim.niborian.com`)
+      - traefik.http.routers.supersim.entrypoints=websecure
+      - traefik.http.routers.supersim.tls.certresolver=cert
+      - traefik.http.routers.supersim.middlewares=authelia@docker
+      - traefik.http.services.supersim.loadbalancer.server.port=80
+
+networks:
+  uni:
+    external: true

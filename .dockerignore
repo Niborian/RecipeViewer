@@ -1,0 +1,8 @@
+node_modules
+docs
+public/data
+.git
+.github
+.claude
+*.log
+recipedump.json

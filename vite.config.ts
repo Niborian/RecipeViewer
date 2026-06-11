@@ -25,7 +25,7 @@ export default defineConfig({
       },
     },
   ],
-  base: '/RecipeViewer/',
+  base: process.env.RECIPEVIEWER_BASE ?? '/RecipeViewer/',
   build: {
     outDir: 'docs',
   },

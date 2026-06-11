@@ -1,0 +1,10 @@
+:80 {
+	root * /srv
+
+	@recipeData path /data/*.json.gz /data/indexes/*.json.gz /data/recipemaps/*.json.gz
+	header @recipeData Content-Type application/octet-stream
+	header @recipeData -Content-Encoding
+
+	try_files {path} /index.html
+	file_server
+}
