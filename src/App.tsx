@@ -9,9 +9,11 @@ import MaterialsPage from './routes/MaterialsPage';
 import MaterialDetailPage from './routes/MaterialDetailPage';
 import RecipeSearchPage from './routes/RecipeSearchPage';
 
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
+
 function App() {
   return (
-    <Router basename="/RecipeViewer">
+    <Router basename={routerBasename}>
       <div className="min-h-screen bg-gray-900">
         <Header />
         <main className="container mx-auto px-6 py-8">
