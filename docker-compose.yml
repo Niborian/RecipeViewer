@@ -7,6 +7,8 @@ services:
     image: recipeviewer:latest
     container_name: recipeviewer
     restart: unless-stopped
+    ports:
+      - "${RECIPEVIEWER_HOST_BIND:-10.0.0.200}:${RECIPEVIEWER_HOST_PORT:-8097}:80"
     networks:
       - uni
     labels:
