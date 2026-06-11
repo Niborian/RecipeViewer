@@ -87,7 +87,7 @@ interface SimulationContext {
 const CHANCE_DENOMINATOR = 10000;
 const DEFAULT_MAX_DEPTH = 1024;
 const DEFAULT_ACCESSIBLE_DIMENSIONS = [0];
-const CACHE_VERSION = 'recipe-simulator-v6';
+const CACHE_VERSION = 'recipe-simulator-v7';
 const CACHE_KEYS_KEY = `${CACHE_VERSION}:keys`;
 const MAX_PERSISTED_CACHE_ENTRIES = 8;
 const memoryCache = new Map<string, UnitCacheEntry>();
@@ -160,7 +160,7 @@ function reportProgress(
 }
 
 async function yieldToBrowser(): Promise<void> {
-  await new Promise<void>(resolve => window.setTimeout(resolve, 0));
+  await new Promise<void>(resolve => globalThis.setTimeout(resolve, 0));
 }
 
 function makeItemResource(stack: Pick<ItemStack, 'resource' | 'metadata' | 'displayName'>, names: Map<string, string>): SimResource {
@@ -216,6 +216,9 @@ function isReusableToolItem(resource: SimResource, context: SimulationContext): 
   if (resource.type !== 'item') return false;
   const { resource: itemResource } = parseItemResourceKey(resource.key);
   const text = resourceText(resource, context);
+  if (/\b(tip|blade|spring|rod|gear|wire|cable|plate|pipe|rotor|ring|bolt|screw|foil|cell|casing|hull)\b/.test(text)) {
+    return false;
+  }
   return /(^|:|_)(file|hammer|wrench|saw|cutter|screwdriver|wire_cutter|soft_mallet|mortar)$/.test(itemResource) ||
     /\b(file|hammer|wrench|saw|cutter|screwdriver|wire cutter|soft mallet|mortar|programmed circuit)\b/.test(text);
 }
@@ -273,6 +276,25 @@ function isBaseFluid(resource: SimResource): boolean {
     name.includes('salt water') ||
     name.includes('steam') ||
     name.includes('air');
+}
+
+function isMoltenMaterialFluid(resource: SimResource): boolean {
+  if (resource.type !== 'fluid') return false;
+  const key = resource.key.toLowerCase();
+  const name = resource.displayName.toLowerCase();
+  return key.startsWith('fluid.') && name.startsWith('liquid ') &&
+    !name.includes('solution') &&
+    !name.includes('acid') &&
+    !name.includes('water') &&
+    !name.includes('steam') &&
+    !name.includes('gas');
+}
+
+function isCirculatingProcessFluid(resource: SimResource): boolean {
+  if (resource.type !== 'fluid' || isMoltenMaterialFluid(resource)) return false;
+  const key = resource.key.toLowerCase();
+  const name = resource.displayName.toLowerCase();
+  return key.includes('sodium_hydroxide') || name.includes('sodium hydroxide');
 }
 
 function classifyTerminalResource(
@@ -790,6 +812,9 @@ async function solveResourceUnit(
   }
   if (context.inProgress.has(resourceId)) {
     context.warnings.push(`Skipped cycle at ${resource.displayName}.`);
+    if (isCirculatingProcessFluid(resource)) {
+      return { options: [], blocked: false, terminal: 'loop' };
+    }
     return { options: [], blocked: true };
   }
   if (depth >= context.settings.maxDepth) {
@@ -797,13 +822,22 @@ async function solveResourceUnit(
     return { options: [], blocked: true };
   }
 
-  const refs = getProducerRefs(resource, context);
-  if (refs.length === 0) {
-    const terminal = classifyTerminalResource(resource, context);
+  const terminal = classifyTerminalResource(resource, context);
+  if (terminal !== 'blocked') {
     const result = {
       options: [],
-      blocked: terminal === 'blocked',
-      terminal: terminal === 'blocked' ? undefined : terminal,
+      blocked: false,
+      terminal,
+    };
+    context.memo.set(resourceId, result);
+    return result;
+  }
+
+  const refs = getProducerRefs(resource, context);
+  if (refs.length === 0) {
+    const result = {
+      options: [],
+      blocked: true,
     };
     context.memo.set(resourceId, result);
     return result;
@@ -887,8 +921,8 @@ async function solveResourceUnit(
       const scaledCatalystPlan = bestCatalystPlan ? scaleOption(bestCatalystPlan, catalyst.amount) : null;
 
       if (!scaledCatalystPlan && catalystResult.blocked) {
-        blockedByChild = true;
-        break;
+        setupChildren.push({ ingredient: setupIngredient, plan: null, status: 'setup' });
+        continue;
       }
 
       const catalystStatus = scaledCatalystPlan ? 'planned' : catalystResult.terminal || 'setup';

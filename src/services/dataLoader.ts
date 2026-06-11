@@ -4,7 +4,7 @@ import type { Material } from '../types/materials';
 import type { RecipeMapIndex, RecipePropsIndex } from '../types/recipeSearch';
 import type { OreSourceIndex } from '../types/worldgen';
 
-const BASE_PATH = import.meta.env.BASE_URL + 'data/';
+const BASE_PATH = `${import.meta.env?.BASE_URL ?? '/'}data/`;
 
 // Cache for loaded data
 const cache = new Map<string, any>();
