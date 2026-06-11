@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Boxes, ChevronRight, FlaskConical, Loader2, Play, Zap } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRight, Boxes, ChevronRight, FlaskConical, Loader2, Play, RefreshCw, Wrench, Zap } from 'lucide-react';
 import type { LoadedRecipe } from '../types/recipeIndex';
 import type { CraftingRecipe, Recipe, SmeltingRecipe } from '../types/recipes';
 import type { SimIngredient, SimRecipeOption, SimResource, SimulationResult } from '../types/simulation';
@@ -74,13 +74,20 @@ function CompactIngredient({ ingredient }: { ingredient: SimIngredient }) {
     <div className="flex items-center justify-between gap-3 rounded border border-gray-700 bg-gray-900 px-3 py-2">
       <div className="min-w-0">
         <div className="truncate text-sm text-gray-100">{ingredient.resource.displayName}</div>
-        <div className="text-xs text-gray-500">{ingredient.resource.type}</div>
+        <div className="truncate text-xs text-gray-500">{ingredient.note || ingredient.resource.type}</div>
       </div>
       <div className="shrink-0 text-sm font-medium text-gray-300">
         {formatAmount(ingredient.resource, ingredient.amount)}
       </div>
     </div>
   );
+}
+
+function childStatusText(child: { plan: SimRecipeOption | null; status?: string }): string {
+  if (child.plan) return '';
+  if (child.status === 'loop') return '(circulating inventory)';
+  if (child.status === 'setup') return '(one-time setup)';
+  return '(base input)';
 }
 
 function PlanNode({ option }: { option: SimRecipeOption }) {
@@ -120,6 +127,33 @@ function PlanNode({ option }: { option: SimRecipeOption }) {
           </div>
         )}
 
+        {option.loopInputs.length > 0 && (
+          <div>
+            <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Circulating Inventory</div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {option.loopInputs.map((ingredient) => (
+                <CompactIngredient key={`${ingredient.resource.type}:${ingredient.resource.key}`} ingredient={ingredient} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {option.setupChildren.length > 0 && (
+          <div className="space-y-3">
+            <div className="text-xs font-medium uppercase tracking-wide text-gray-500">One-Time Setup Chain</div>
+            {option.setupChildren.map((child) => (
+              <div key={`${child.ingredient.resource.type}:${child.ingredient.resource.key}`} className="border-l border-gray-700 pl-4">
+                <div className="mb-2 flex items-center gap-2 text-sm text-gray-300">
+                  <ChevronRight className="h-4 w-4 text-gray-500" />
+                  <span>{formatAmount(child.ingredient.resource, child.ingredient.amount)} {child.ingredient.resource.displayName}</span>
+                  {!child.plan && <span className="text-gray-500">{childStatusText(child)}</span>}
+                </div>
+                {child.plan ? <PlanNode option={child.plan} /> : <ResourceSlot ingredient={child.ingredient} />}
+              </div>
+            ))}
+          </div>
+        )}
+
         {option.children.length > 0 && (
           <div className="space-y-3">
             <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Input Chain</div>
@@ -128,7 +162,7 @@ function PlanNode({ option }: { option: SimRecipeOption }) {
                 <div className="mb-2 flex items-center gap-2 text-sm text-gray-300">
                   <ChevronRight className="h-4 w-4 text-gray-500" />
                   <span>{formatAmount(child.ingredient.resource, child.ingredient.amount)} {child.ingredient.resource.displayName}</span>
-                  {!child.plan && <span className="text-gray-500">(base input)</span>}
+                  {!child.plan && <span className="text-gray-500">{childStatusText(child)}</span>}
                 </div>
                 {child.plan ? <PlanNode option={child.plan} /> : <ResourceSlot ingredient={child.ingredient} />}
               </div>
@@ -136,6 +170,119 @@ function PlanNode({ option }: { option: SimRecipeOption }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+interface SimStep {
+  id: string;
+  option: SimRecipeOption;
+  label: string;
+}
+
+function collectSteps(option: SimRecipeOption, steps: SimStep[] = [], seen = new Set<string>()): SimStep[] {
+  for (const child of option.setupChildren) {
+    if (child.plan) collectSteps(child.plan, steps, seen);
+  }
+  for (const child of option.children) {
+    if (child.plan) collectSteps(child.plan, steps, seen);
+  }
+
+  const id = `${option.id}:${option.target.type}:${option.target.key}`;
+  if (!seen.has(id)) {
+    seen.add(id);
+    steps.push({
+      id,
+      option,
+      label: `Make ${formatAmount(option.target, option.targetAmount)} ${option.target.displayName}`,
+    });
+  }
+  return steps;
+}
+
+function StepCard({ step }: { step: SimStep }) {
+  const option = step.option;
+  return (
+    <div className="rounded border border-gray-700 bg-gray-850">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-700 bg-gray-900 px-4 py-3">
+        <div>
+          <div className="font-medium text-gray-100">{step.label}</div>
+          <div className="text-xs text-gray-500">
+            {option.recipeLabel}{option.batches !== 1 ? ` - ${option.batches.toFixed(2)} batches` : ''}
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
+          {option.tier && <span>{option.tier}</span>}
+          {option.totalEU > 0 && <span>{Math.round(option.totalEU).toLocaleString()} EU</span>}
+        </div>
+      </div>
+      <div className="space-y-4 p-4">
+        {renderLoadedRecipe(option.loadedRecipe)}
+
+        {option.inputs.length > 0 && (
+          <div>
+            <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Consumed Inputs</div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {option.inputs.map((ingredient) => (
+                <CompactIngredient key={`${ingredient.resource.type}:${ingredient.resource.key}`} ingredient={ingredient} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {option.catalysts.length > 0 && (
+          <div>
+            <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">One-Time Requirements</div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {option.catalysts.map((ingredient) => (
+                <CompactIngredient
+                  key={`${ingredient.resource.type}:${ingredient.resource.key}`}
+                  ingredient={{ ...ingredient, note: 'not consumed' }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StepPager({ option }: { option: SimRecipeOption }) {
+  const steps = useMemo(() => collectSteps(option), [option]);
+  const [stepIndex, setStepIndex] = useState(0);
+  const currentStep = steps[Math.min(stepIndex, steps.length - 1)];
+
+  if (!currentStep) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-700 bg-gray-900 px-4 py-3">
+        <div className="text-sm font-medium text-gray-200">
+          Step {Math.min(stepIndex + 1, steps.length)} / {steps.length}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setStepIndex(index => Math.max(0, index - 1))}
+            disabled={stepIndex === 0}
+            className="inline-flex h-9 w-9 items-center justify-center rounded border border-gray-700 text-gray-300 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+            title="Previous step"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setStepIndex(index => Math.min(steps.length - 1, index + 1))}
+            disabled={stepIndex >= steps.length - 1}
+            className="inline-flex h-9 w-9 items-center justify-center rounded border border-gray-700 text-gray-300 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+            title="Next step"
+          >
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+      <StepCard step={currentStep} />
     </div>
   );
 }
@@ -152,6 +299,8 @@ function OptionSummary({ option, index }: { option: SimRecipeOption; index: numb
         </div>
         <div className="flex flex-wrap gap-2 text-xs text-gray-300">
           <span className="rounded bg-gray-900 px-2 py-1">{option.baseInputs.length} base inputs</span>
+          {option.setupInputs.length > 0 && <span className="rounded bg-gray-900 px-2 py-1">{option.setupInputs.length} setup</span>}
+          {option.loopInputs.length > 0 && <span className="rounded bg-gray-900 px-2 py-1">{option.loopInputs.length} loops</span>}
           {option.totalEU > 0 && <span className="rounded bg-gray-900 px-2 py-1">{Math.round(option.totalEU).toLocaleString()} EU here</span>}
         </div>
       </div>
@@ -172,7 +321,66 @@ function OptionSummary({ option, index }: { option: SimRecipeOption; index: numb
             </div>
           </div>
         )}
-        <PlanNode option={option} />
+
+        {option.setupInputs.length > 0 && (
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+              <Wrench className="h-4 w-4 text-amber-400" />
+              One-Time Setup
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {option.setupInputs.slice(0, 18).map((ingredient) => (
+                <CompactIngredient
+                  key={`${ingredient.resource.type}:${ingredient.resource.key}:${ingredient.note || ''}`}
+                  ingredient={ingredient}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {option.setupBaseInputs.length > 0 && (
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+              <Boxes className="h-4 w-4 text-amber-300" />
+              Setup Materials
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {option.setupBaseInputs.slice(0, 18).map((ingredient) => (
+                <CompactIngredient
+                  key={`${ingredient.resource.type}:${ingredient.resource.key}:${ingredient.note || ''}`}
+                  ingredient={ingredient}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {option.loopInputs.length > 0 && (
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+              <RefreshCw className="h-4 w-4 text-emerald-400" />
+              Circulating Inventory
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {option.loopInputs.slice(0, 18).map((ingredient) => (
+                <CompactIngredient
+                  key={`${ingredient.resource.type}:${ingredient.resource.key}:${ingredient.note || ''}`}
+                  ingredient={ingredient}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <StepPager key={option.id} option={option} />
+
+        <details className="rounded border border-gray-700 bg-gray-900">
+          <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-gray-300">Full Chain</summary>
+          <div className="border-t border-gray-700 p-4">
+            <PlanNode option={option} />
+          </div>
+        </details>
       </div>
     </section>
   );

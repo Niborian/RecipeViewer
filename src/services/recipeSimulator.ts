@@ -30,6 +30,7 @@ interface ItemSearchEntry {
   displayName?: string;
   resource: string;
   metadata?: number;
+  translationKey?: string;
 }
 
 interface FluidSearchEntry {
@@ -46,12 +47,14 @@ interface UnitCacheEntry {
 interface SolveResult {
   options: SimRecipeOption[];
   blocked: boolean;
+  terminal?: 'base' | 'setup' | 'loop';
 }
 
 interface SimulationContext {
   itemIndex: Record<string, RecipeIndexEntry>;
   fluidIndex: Record<string, RecipeIndexEntry>;
   itemNames: Map<string, string>;
+  itemDetails: Map<string, ItemSearchEntry>;
   fluidNames: Map<string, string>;
   settings: Required<SimulationSettings>;
   memo: Map<string, SolveResult>;
@@ -65,7 +68,7 @@ interface SimulationContext {
 
 const CHANCE_DENOMINATOR = 10000;
 const DEFAULT_MAX_DEPTH = 1024;
-const CACHE_VERSION = 'recipe-simulator-v3';
+const CACHE_VERSION = 'recipe-simulator-v4';
 const CACHE_KEYS_KEY = `${CACHE_VERSION}:keys`;
 const MAX_PERSISTED_CACHE_ENTRIES = 8;
 const memoryCache = new Map<string, UnitCacheEntry>();
@@ -160,6 +163,81 @@ function makeFluidResource(stack: Pick<FluidStack, 'unlocalizedName' | 'specific
 
 function resourcesEqual(a: SimResource, b: SimResource): boolean {
   return a.type === b.type && a.key === b.key;
+}
+
+function parseItemResourceKey(key: string): { resource: string; metadata: number } {
+  const splitAt = key.lastIndexOf(':');
+  return {
+    resource: key.slice(0, splitAt),
+    metadata: Number(key.slice(splitAt + 1)) || 0,
+  };
+}
+
+function getItemDetails(resource: SimResource, context: SimulationContext): ItemSearchEntry | undefined {
+  if (resource.type !== 'item') return undefined;
+  return context.itemDetails.get(resource.key);
+}
+
+function resourceText(resource: SimResource, context: SimulationContext): string {
+  const item = getItemDetails(resource, context);
+  return [
+    resource.displayName,
+    resource.key,
+    item?.translationKey,
+    item?.resource,
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function isMachineItem(resource: SimResource): boolean {
+  if (resource.type !== 'item') return false;
+  return parseItemResourceKey(resource.key).resource === 'gregtech:machine';
+}
+
+function isReusableToolItem(resource: SimResource, context: SimulationContext): boolean {
+  if (resource.type !== 'item') return false;
+  const { resource: itemResource } = parseItemResourceKey(resource.key);
+  const text = resourceText(resource, context);
+  return /(^|:|_)(file|hammer|wrench|saw|cutter|screwdriver|wire_cutter|soft_mallet|mortar)$/.test(itemResource) ||
+    /\b(file|hammer|wrench|saw|cutter|screwdriver|wire cutter|soft mallet|mortar)\b/.test(text);
+}
+
+function isRawOreItem(resource: SimResource, context: SimulationContext): boolean {
+  if (resource.type !== 'item') return false;
+  const text = resourceText(resource, context);
+  const { resource: itemResource } = parseItemResourceKey(resource.key);
+  if (text.includes('cable facade')) return false;
+  return /\b(nether |end )?[a-z0-9 -]+ ore\b/.test(text) ||
+    itemResource.includes(':ore_') ||
+    itemResource.includes('_ore_') ||
+    itemResource.endsWith('_ore');
+}
+
+function isBaseFluid(resource: SimResource): boolean {
+  if (resource.type !== 'fluid') return false;
+  const key = resource.key.toLowerCase();
+  const name = resource.displayName.toLowerCase();
+  return key === 'water' ||
+    key === 'fluid.water' ||
+    key.includes('distilled_water') ||
+    key.includes('salt_water') ||
+    key.includes('steam') ||
+    key.includes('air') ||
+    name === 'water' ||
+    name.includes('distilled water') ||
+    name.includes('salt water') ||
+    name.includes('steam') ||
+    name.includes('air');
+}
+
+function classifyTerminalResource(
+  resource: SimResource,
+  context: SimulationContext,
+): 'base' | 'setup' | 'blocked' {
+  if (isMachineItem(resource)) return 'blocked';
+  if (isReusableToolItem(resource, context)) return 'setup';
+  if (isRawOreItem(resource, context)) return 'base';
+  if (resource.type === 'fluid') return isBaseFluid(resource) ? 'base' : 'blocked';
+  return 'base';
 }
 
 function getTierForEUt(EUt: number): { tier: string | null; tierIndex: number | null } {
@@ -277,11 +355,20 @@ function scaleOption(option: SimRecipeOption, factor: number): SimRecipeOption {
     targetAmount: roundAmount(option.targetAmount * factor),
     batches: option.batches * factor,
     inputs: option.inputs.map(input => scaleIngredient(input, factor)),
-    catalysts: option.catalysts.map(catalyst => scaleIngredient(catalyst, factor)),
+    catalysts: option.catalysts.map(catalyst => ({ ...catalyst })),
     children: option.children.map(child => ({
       ingredient: scaleIngredient(child.ingredient, factor),
       plan: child.plan ? scaleOption(child.plan, factor) : null,
+      status: child.status,
     })),
+    setupInputs: aggregateIngredients(option.setupInputs.map(input => ({ ...input }))),
+    setupBaseInputs: aggregateIngredients(option.setupBaseInputs.map(input => ({ ...input }))),
+    setupChildren: option.setupChildren.map(child => ({
+      ingredient: { ...child.ingredient },
+      plan: child.plan,
+      status: child.status,
+    })),
+    loopInputs: aggregateIngredients(option.loopInputs.map(input => ({ ...input }))),
     baseInputs: aggregateIngredients(option.baseInputs.map(input => scaleIngredient(input, factor))),
     totalEU: option.totalEU * factor,
     score: option.score * factor,
@@ -364,7 +451,9 @@ function getRecipeRequirements(loaded: LoadedRecipe, batches: number, context: S
       if (!stack) continue;
       const ingredient: SimIngredient = {
         resource: makeItemResource(stack, context.itemNames),
-        amount: scaleAmount(input.amount || stack.count || 1, batches),
+        amount: input.nonConsumable
+          ? roundAmount(input.amount || stack.count || 1)
+          : scaleAmount(input.amount || stack.count || 1, batches),
         role: input.nonConsumable ? 'catalyst' : 'input',
         alternatives: getAlternatives(input, context),
       };
@@ -375,7 +464,9 @@ function getRecipeRequirements(loaded: LoadedRecipe, batches: number, context: S
       if (!fluid?.unlocalizedName) continue;
       addIngredient(input.nonConsumable ? catalysts : inputs, {
         resource: makeFluidResource(fluid, context.fluidNames),
-        amount: scaleAmount(fluid.amount || input.amount || 0, batches),
+        amount: input.nonConsumable
+          ? roundAmount(fluid.amount || input.amount || 0)
+          : scaleAmount(fluid.amount || input.amount || 0, batches),
         role: input.nonConsumable ? 'catalyst' : 'input',
       });
     }
@@ -415,6 +506,50 @@ function recipeEnergy(loaded: LoadedRecipe, batches: number): {
   return { tier, tierIndex, EUt: recipe.EUt ?? 0, duration, totalEU };
 }
 
+function hasConsumedMachineInput(inputs: SimIngredient[], target: SimResource): boolean {
+  if (isMachineItem(target)) return false;
+  return inputs.some(input => isMachineItem(input.resource));
+}
+
+function addSetupFromPlan(
+  plan: SimRecipeOption,
+  setupInputs: SimIngredient[],
+  setupBaseInputs: SimIngredient[],
+  loopInputs: SimIngredient[],
+): void {
+  for (const setupInput of plan.setupInputs) addIngredient(setupInputs, setupInput);
+  for (const setupBaseInput of plan.setupBaseInputs) addIngredient(setupBaseInputs, setupBaseInput);
+  for (const baseInput of plan.baseInputs) {
+    addIngredient(setupBaseInputs, {
+      ...baseInput,
+      role: 'setup',
+      note: baseInput.note || 'setup material',
+    });
+  }
+  for (const loopInput of plan.loopInputs) addIngredient(loopInputs, loopInput);
+}
+
+function terminalIngredient(
+  input: SimIngredient,
+  terminal: SolveResult['terminal'],
+): SimIngredient {
+  if (terminal === 'setup') {
+    return {
+      ...input,
+      role: 'setup',
+      note: input.note || 'one-time setup',
+    };
+  }
+  if (terminal === 'loop') {
+    return {
+      ...input,
+      role: 'loop',
+      note: input.note || 'circulating loop inventory; make extra to avoid stalls',
+    };
+  }
+  return input;
+}
+
 function getProducerRefs(resource: SimResource, context: SimulationContext): RecipeRef[] {
   const entry = resource.type === 'item'
     ? context.itemIndex[resource.key]
@@ -435,6 +570,9 @@ async function solveResourceUnit(
   }
   if (context.inProgress.has(resourceId)) {
     context.warnings.push(`Skipped cycle at ${resource.displayName}.`);
+    if (resource.type === 'fluid') {
+      return { options: [], blocked: false, terminal: 'loop' };
+    }
     return { options: [], blocked: true };
   }
   if (depth >= context.settings.maxDepth) {
@@ -444,7 +582,12 @@ async function solveResourceUnit(
 
   const refs = getProducerRefs(resource, context);
   if (refs.length === 0) {
-    const result = { options: [], blocked: false };
+    const terminal = classifyTerminalResource(resource, context);
+    const result = {
+      options: [],
+      blocked: terminal === 'blocked',
+      terminal: terminal === 'blocked' ? undefined : terminal,
+    };
     context.memo.set(resourceId, result);
     return result;
   }
@@ -480,8 +623,16 @@ async function solveResourceUnit(
 
     const batches = 1 / outputAmount;
     const { inputs, catalysts } = getRecipeRequirements(loaded, batches, context);
+    if (hasConsumedMachineInput(inputs, resource)) {
+      blockedRecipeCount += 1;
+      continue;
+    }
     const children: SimChildRequirement[] = [];
+    const setupChildren: SimChildRequirement[] = [];
     const baseInputs: SimIngredient[] = [];
+    const setupInputs: SimIngredient[] = [];
+    const setupBaseInputs: SimIngredient[] = [];
+    const loopInputs: SimIngredient[] = [];
     let childScore = 0;
     let blockedByChild = false;
 
@@ -493,15 +644,60 @@ async function solveResourceUnit(
         blockedByChild = true;
         break;
       }
-      children.push({ ingredient: input, plan: scaledChild });
+      const status = scaledChild ? 'planned' : childResult.terminal || 'base';
+      children.push({ ingredient: input, plan: scaledChild, status });
       if (scaledChild) {
         childScore += scaledChild.score;
         for (const baseInput of scaledChild.baseInputs) {
           addIngredient(baseInputs, baseInput);
         }
+        addSetupFromPlan(scaledChild, setupInputs, setupBaseInputs, loopInputs);
       } else {
-        addIngredient(baseInputs, input);
-        childScore += baseCost(input);
+        const terminal = terminalIngredient(input, childResult.terminal || 'base');
+        if (childResult.terminal === 'setup') {
+          addIngredient(setupInputs, terminal);
+        } else if (childResult.terminal === 'loop') {
+          addIngredient(loopInputs, terminal);
+        } else {
+          addIngredient(baseInputs, terminal);
+          childScore += baseCost(input);
+        }
+      }
+    }
+    if (blockedByChild) {
+      blockedRecipeCount += 1;
+      continue;
+    }
+
+    for (const catalyst of catalysts) {
+      const setupIngredient: SimIngredient = {
+        ...catalyst,
+        role: 'setup',
+        note: catalyst.note || 'one-time setup',
+      };
+      addIngredient(setupInputs, setupIngredient);
+
+      if (resourcesEqual(catalyst.resource, resource)) {
+        setupChildren.push({ ingredient: setupIngredient, plan: null, status: 'setup' });
+        continue;
+      }
+
+      const catalystResult = await solveResourceUnit(catalyst.resource, depth + 1, context);
+      const bestCatalystPlan = catalystResult.options[0] || null;
+      const scaledCatalystPlan = bestCatalystPlan ? scaleOption(bestCatalystPlan, catalyst.amount) : null;
+
+      if (!scaledCatalystPlan && catalystResult.blocked) {
+        blockedByChild = true;
+        break;
+      }
+
+      const catalystStatus = scaledCatalystPlan ? 'planned' : catalystResult.terminal || 'setup';
+      setupChildren.push({ ingredient: setupIngredient, plan: scaledCatalystPlan, status: catalystStatus });
+
+      if (scaledCatalystPlan) {
+        addSetupFromPlan(scaledCatalystPlan, setupInputs, setupBaseInputs, loopInputs);
+      } else if (catalystResult.terminal === 'loop') {
+        addIngredient(loopInputs, terminalIngredient(catalyst, 'loop'));
       }
     }
     if (blockedByChild) {
@@ -524,6 +720,10 @@ async function solveResourceUnit(
       inputs,
       catalysts,
       children,
+      setupInputs: aggregateIngredients(setupInputs),
+      setupBaseInputs: aggregateIngredients(setupBaseInputs),
+      setupChildren,
+      loopInputs: aggregateIngredients(loopInputs),
       baseInputs: aggregateIngredients(baseInputs),
       tier: energy.tier,
       tierIndex: energy.tierIndex,
@@ -542,7 +742,8 @@ async function solveResourceUnit(
 
   const result = {
     options: sorted,
-    blocked: sorted.length === 0 && candidateRecipeCount > 0 && blockedRecipeCount === candidateRecipeCount,
+    blocked: sorted.length === 0 && refs.length > 0 &&
+      (candidateRecipeCount > 0 || blockedRecipeCount > 0 || loadedRecipes.length > 0),
   };
 
   context.memo.set(resourceId, result);
@@ -553,17 +754,21 @@ async function solveResourceUnit(
 
 function buildNameMaps(items: ItemSearchEntry[], fluids: FluidSearchEntry[]): {
   itemNames: Map<string, string>;
+  itemDetails: Map<string, ItemSearchEntry>;
   fluidNames: Map<string, string>;
 } {
   const itemNames = new Map<string, string>();
+  const itemDetails = new Map<string, ItemSearchEntry>();
   const fluidNames = new Map<string, string>();
   for (const item of items) {
-    itemNames.set(itemKey(item.resource, item.metadata ?? 0), item.displayName || item.resource);
+    const key = itemKey(item.resource, item.metadata ?? 0);
+    itemNames.set(key, item.displayName || item.resource);
+    itemDetails.set(key, item);
   }
   for (const fluid of fluids) {
     fluidNames.set(fluid.unlocalizedName, fluid.localizedName || fluid.fluidName || fluid.unlocalizedName);
   }
-  return { itemNames, fluidNames };
+  return { itemNames, itemDetails, fluidNames };
 }
 
 function normalizeSettings(settings: SimulationSettings): Required<SimulationSettings> {
@@ -615,11 +820,12 @@ export async function simulateRecipeChain(
     loadItemSearchIndex() as Promise<ItemSearchEntry[]>,
     loadFluidSearchIndex() as Promise<FluidSearchEntry[]>,
   ]);
-  const { itemNames, fluidNames } = buildNameMaps(items, fluids);
+  const { itemNames, itemDetails, fluidNames } = buildNameMaps(items, fluids);
   const context: SimulationContext = {
     itemIndex,
     fluidIndex,
     itemNames,
+    itemDetails,
     fluidNames,
     settings,
     memo: new Map(),

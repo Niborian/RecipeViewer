@@ -11,7 +11,7 @@ export interface SimResource {
 export interface SimIngredient {
   resource: SimResource;
   amount: number;
-  role: 'input' | 'catalyst';
+  role: 'input' | 'catalyst' | 'setup' | 'loop';
   alternatives?: SimResource[];
   note?: string;
 }
@@ -19,6 +19,7 @@ export interface SimIngredient {
 export interface SimChildRequirement {
   ingredient: SimIngredient;
   plan: SimRecipeOption | null;
+  status?: 'planned' | 'base' | 'setup' | 'loop';
 }
 
 export interface SimRecipeOption {
@@ -32,6 +33,10 @@ export interface SimRecipeOption {
   inputs: SimIngredient[];
   catalysts: SimIngredient[];
   children: SimChildRequirement[];
+  setupInputs: SimIngredient[];
+  setupBaseInputs: SimIngredient[];
+  setupChildren: SimChildRequirement[];
+  loopInputs: SimIngredient[];
   baseInputs: SimIngredient[];
   tier: string | null;
   tierIndex: number | null;
