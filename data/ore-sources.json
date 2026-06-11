@@ -1,0 +1,3390 @@
+{
+  "generatedFrom": "supersymmetry-20260611-203037",
+  "modpackVersion": "0.1.16.9",
+  "sources": [
+    {
+      "id": "beneath/anthracite_deposit_vein",
+      "name": "Anthracite Deposit Vein",
+      "sourcePath": "beneath/anthracite_deposit_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 60,
+      "density": 1,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "anthracite",
+          "oreDictName": "oreAnthracite",
+          "block": "susy:resource_block_1",
+          "variant": "anthracite"
+        },
+        {
+          "role": "secondary",
+          "material": "anthracite",
+          "oreDictName": "oreAnthracite",
+          "block": "susy:resource_block_1",
+          "variant": "anthracite"
+        },
+        {
+          "role": "between",
+          "material": "anthracite",
+          "oreDictName": "oreAnthracite",
+          "block": "susy:resource_block_1",
+          "variant": "anthracite"
+        },
+        {
+          "role": "sporadic",
+          "material": "anthracite",
+          "oreDictName": "oreAnthracite",
+          "block": "susy:resource_block_1",
+          "variant": "anthracite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/arsenopyrite_vein",
+      "name": "Arsenopyrite Vein",
+      "sourcePath": "beneath/arsenopyrite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "arsenopyrite",
+          "oreDictName": "oreArsenopyrite"
+        },
+        {
+          "role": "secondary",
+          "material": "arsenopyrite",
+          "oreDictName": "oreArsenopyrite"
+        },
+        {
+          "role": "between",
+          "material": "arsenopyrite",
+          "oreDictName": "oreArsenopyrite"
+        },
+        {
+          "role": "sporadic",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/cassiterite_vein",
+      "name": "Cassiterite Vein",
+      "sourcePath": "beneath/cassiterite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 120,
+      "density": 0.5,
+      "radius": [
+        30,
+        30
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        },
+        {
+          "role": "secondary",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        },
+        {
+          "role": "between",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        },
+        {
+          "role": "sporadic",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/chalcocite_vein",
+      "name": "Chalcocite Vein",
+      "sourcePath": "beneath/chalcocite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 120,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "chalcocite",
+          "oreDictName": "oreChalcocite"
+        },
+        {
+          "role": "secondary",
+          "material": "chalcocite",
+          "oreDictName": "oreChalcocite"
+        },
+        {
+          "role": "between",
+          "material": "chalcocite",
+          "oreDictName": "oreChalcocite"
+        },
+        {
+          "role": "sporadic",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/chalcopyrite_vein",
+      "name": "Chalcopyrite Vein",
+      "sourcePath": "beneath/chalcopyrite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 120,
+      "density": 0.5,
+      "radius": [
+        30,
+        30
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        },
+        {
+          "role": "secondary",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        },
+        {
+          "role": "between",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        },
+        {
+          "role": "sporadic",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/chromite_vein",
+      "name": "Chromite Vein",
+      "sourcePath": "beneath/chromite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "olivine",
+          "oreDictName": "oreOlivine"
+        },
+        {
+          "role": "secondary",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "between",
+          "material": "chromite",
+          "oreDictName": "oreChromite"
+        },
+        {
+          "role": "sporadic",
+          "material": "emerald",
+          "oreDictName": "oreEmerald"
+        }
+      ]
+    },
+    {
+      "id": "beneath/cinnabar_vein",
+      "name": "Cinnabar Vein",
+      "sourcePath": "beneath/cinnabar_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "cinnabar",
+          "oreDictName": "oreCinnabar"
+        },
+        {
+          "role": "secondary",
+          "material": "cinnabar",
+          "oreDictName": "oreCinnabar"
+        },
+        {
+          "role": "between",
+          "material": "cinnabar",
+          "oreDictName": "oreCinnabar"
+        },
+        {
+          "role": "sporadic",
+          "material": "stibnite",
+          "oreDictName": "oreStibnite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/enargite_vein",
+      "name": "Enargite Vein",
+      "sourcePath": "beneath/enargite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "enargite",
+          "oreDictName": "oreEnargite"
+        },
+        {
+          "role": "secondary",
+          "material": "enargite",
+          "oreDictName": "oreEnargite"
+        },
+        {
+          "role": "between",
+          "material": "enargite",
+          "oreDictName": "oreEnargite"
+        },
+        {
+          "role": "sporadic",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/graphite_vein",
+      "name": "Graphite Vein",
+      "sourcePath": "beneath/graphite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 1,
+      "radius": [
+        8,
+        8
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "graphite",
+          "oreDictName": "oreGraphite"
+        },
+        {
+          "role": "secondary",
+          "material": "graphite",
+          "oreDictName": "oreGraphite"
+        },
+        {
+          "role": "between",
+          "material": "graphite",
+          "oreDictName": "oreGraphite"
+        },
+        {
+          "role": "sporadic",
+          "material": "graphite",
+          "oreDictName": "oreGraphite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/lapis_vein",
+      "name": "Lapis Vein",
+      "sourcePath": "beneath/lapis_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 120,
+      "density": 0.5,
+      "radius": [
+        30,
+        30
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "lapis",
+          "oreDictName": "oreLapis"
+        },
+        {
+          "role": "secondary",
+          "material": "lapis",
+          "oreDictName": "oreLapis"
+        },
+        {
+          "role": "between",
+          "material": "sodalite",
+          "oreDictName": "oreSodalite"
+        },
+        {
+          "role": "sporadic",
+          "material": "lazurite",
+          "oreDictName": "oreLazurite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/magnesite_vein",
+      "name": "Magnesite Vein",
+      "sourcePath": "beneath/magnesite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "magnesite",
+          "oreDictName": "oreMagnesite"
+        },
+        {
+          "role": "secondary",
+          "material": "magnesite",
+          "oreDictName": "oreMagnesite"
+        },
+        {
+          "role": "between",
+          "material": "magnesite",
+          "oreDictName": "oreMagnesite"
+        },
+        {
+          "role": "sporadic",
+          "material": "magnesite",
+          "oreDictName": "oreMagnesite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/magnetite_vein",
+      "name": "Magnetite Vein",
+      "sourcePath": "beneath/magnetite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 120,
+      "density": 0.5,
+      "radius": [
+        30,
+        30
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "secondary",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "between",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "sporadic",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/phosphorite_vein",
+      "name": "Phosphorite Vein",
+      "sourcePath": "beneath/phosphorite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "phosphorite",
+          "oreDictName": "orePhosphorite"
+        },
+        {
+          "role": "secondary",
+          "material": "phosphorite",
+          "oreDictName": "orePhosphorite"
+        },
+        {
+          "role": "between",
+          "material": "phosphorite",
+          "oreDictName": "orePhosphorite"
+        },
+        {
+          "role": "sporadic",
+          "material": "chlorapatite",
+          "oreDictName": "oreChlorapatite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/pyrite_vein",
+      "name": "Pyrite Vein",
+      "sourcePath": "beneath/pyrite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 120,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        },
+        {
+          "role": "secondary",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        },
+        {
+          "role": "between",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        },
+        {
+          "role": "sporadic",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/realgar_vein",
+      "name": "Realgar Vein",
+      "sourcePath": "beneath/realgar_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "realgar",
+          "oreDictName": "oreRealgar"
+        },
+        {
+          "role": "secondary",
+          "material": "realgar",
+          "oreDictName": "oreRealgar"
+        },
+        {
+          "role": "between",
+          "material": "realgar",
+          "oreDictName": "oreRealgar"
+        },
+        {
+          "role": "sporadic",
+          "material": "galena",
+          "oreDictName": "oreGalena"
+        }
+      ]
+    },
+    {
+      "id": "beneath/redstone_vein",
+      "name": "Redstone Vein",
+      "sourcePath": "beneath/redstone_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "redstone",
+          "oreDictName": "oreRedstone"
+        },
+        {
+          "role": "secondary",
+          "material": "redstone",
+          "oreDictName": "oreRedstone"
+        },
+        {
+          "role": "between",
+          "material": "redstone",
+          "oreDictName": "oreRedstone"
+        },
+        {
+          "role": "sporadic",
+          "material": "cinnabar",
+          "oreDictName": "oreCinnabar"
+        }
+      ]
+    },
+    {
+      "id": "beneath/sphalerite_vein",
+      "name": "Sphalerite Vein",
+      "sourcePath": "beneath/sphalerite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        },
+        {
+          "role": "secondary",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        },
+        {
+          "role": "between",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        },
+        {
+          "role": "sporadic",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/tetrahedrite_vein",
+      "name": "Tetrahedrite Vein",
+      "sourcePath": "beneath/tetrahedrite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 0.5,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "tetrahedrite",
+          "oreDictName": "oreTetrahedrite"
+        },
+        {
+          "role": "secondary",
+          "material": "tetrahedrite",
+          "oreDictName": "oreTetrahedrite"
+        },
+        {
+          "role": "between",
+          "material": "tetrahedrite",
+          "oreDictName": "oreTetrahedrite"
+        },
+        {
+          "role": "sporadic",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        }
+      ]
+    },
+    {
+      "id": "beneath/vanadiferous_titanomagnetite_vein",
+      "name": "Vanadiferous Titanomagnetite Vein",
+      "sourcePath": "beneath/vanadiferous_titanomagnetite_vein.json",
+      "dimensionIds": [
+        10
+      ],
+      "dimensionNames": [
+        "Beneath"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 0.7,
+      "radius": [
+        30,
+        30
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "vanadiferous_titanomagnetite",
+          "oreDictName": "oreVanadiferousTitanomagnetite"
+        },
+        {
+          "role": "secondary",
+          "material": "fluorapatite",
+          "oreDictName": "oreFluorapatite"
+        },
+        {
+          "role": "between",
+          "material": "vanadiferous_titanomagnetite",
+          "oreDictName": "oreVanadiferousTitanomagnetite"
+        },
+        {
+          "role": "sporadic",
+          "material": "zircon",
+          "oreDictName": "oreZircon"
+        }
+      ]
+    },
+    {
+      "id": "nether/bornite_vein",
+      "name": "Bornite Vein",
+      "sourcePath": "nether/bornite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "bornite",
+          "oreDictName": "oreBornite"
+        },
+        {
+          "role": "secondary",
+          "material": "bornite",
+          "oreDictName": "oreBornite"
+        },
+        {
+          "role": "between",
+          "material": "bornite",
+          "oreDictName": "oreBornite"
+        },
+        {
+          "role": "sporadic",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        }
+      ]
+    },
+    {
+      "id": "nether/cassiterite_vein",
+      "name": "Cassiterite Vein",
+      "sourcePath": "nether/cassiterite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        },
+        {
+          "role": "secondary",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        },
+        {
+          "role": "between",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        },
+        {
+          "role": "sporadic",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        }
+      ]
+    },
+    {
+      "id": "nether/chalcopyrite_vein",
+      "name": "Chalcopyrite Vein",
+      "sourcePath": "nether/chalcopyrite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        },
+        {
+          "role": "secondary",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        },
+        {
+          "role": "between",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        },
+        {
+          "role": "sporadic",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        }
+      ]
+    },
+    {
+      "id": "nether/garnierite_vein",
+      "name": "Garnierite Vein",
+      "sourcePath": "nether/garnierite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "garnierite",
+          "oreDictName": "oreGarnierite"
+        },
+        {
+          "role": "secondary",
+          "material": "garnierite",
+          "oreDictName": "oreGarnierite"
+        },
+        {
+          "role": "between",
+          "material": "garnierite",
+          "oreDictName": "oreGarnierite"
+        },
+        {
+          "role": "sporadic",
+          "material": "garnierite",
+          "oreDictName": "oreGarnierite"
+        }
+      ]
+    },
+    {
+      "id": "nether/graphite_vein",
+      "name": "Graphite Vein",
+      "sourcePath": "nether/graphite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 80,
+      "density": 1,
+      "radius": [
+        8,
+        8
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "graphite",
+          "oreDictName": "oreGraphite"
+        },
+        {
+          "role": "secondary",
+          "material": "graphite",
+          "oreDictName": "oreGraphite"
+        },
+        {
+          "role": "between",
+          "material": "graphite",
+          "oreDictName": "oreGraphite"
+        },
+        {
+          "role": "sporadic",
+          "material": "graphite",
+          "oreDictName": "oreGraphite"
+        }
+      ]
+    },
+    {
+      "id": "nether/magnesite_vein",
+      "name": "Magnesite Vein",
+      "sourcePath": "nether/magnesite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "magnesite",
+          "oreDictName": "oreMagnesite"
+        },
+        {
+          "role": "secondary",
+          "material": "magnesite",
+          "oreDictName": "oreMagnesite"
+        },
+        {
+          "role": "between",
+          "material": "magnesite",
+          "oreDictName": "oreMagnesite"
+        },
+        {
+          "role": "sporadic",
+          "material": "magnesite",
+          "oreDictName": "oreMagnesite"
+        }
+      ]
+    },
+    {
+      "id": "nether/magnetite_vein",
+      "name": "Magnetite Vein",
+      "sourcePath": "nether/magnetite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        30,
+        30
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "secondary",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "between",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "sporadic",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        }
+      ]
+    },
+    {
+      "id": "nether/malachite_vein",
+      "name": "Malachite Vein",
+      "sourcePath": "nether/malachite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "malachite",
+          "oreDictName": "oreMalachite"
+        },
+        {
+          "role": "secondary",
+          "material": "malachite",
+          "oreDictName": "oreMalachite"
+        },
+        {
+          "role": "between",
+          "material": "malachite",
+          "oreDictName": "oreMalachite"
+        },
+        {
+          "role": "sporadic",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        }
+      ]
+    },
+    {
+      "id": "nether/nether_quartz_vein",
+      "name": "Nether Quartz Vein",
+      "sourcePath": "nether/nether_quartz_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 140,
+      "density": 0.75,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "nether_quartz",
+          "oreDictName": "oreNetherQuartz"
+        },
+        {
+          "role": "secondary",
+          "material": "nether_quartz",
+          "oreDictName": "oreNetherQuartz"
+        },
+        {
+          "role": "between",
+          "material": "nether_quartz",
+          "oreDictName": "oreNetherQuartz"
+        },
+        {
+          "role": "sporadic",
+          "material": "nether_quartz",
+          "oreDictName": "oreNetherQuartz"
+        }
+      ]
+    },
+    {
+      "id": "nether/pentlandite_vein",
+      "name": "Pentlandite Vein",
+      "sourcePath": "nether/pentlandite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "pentlandite",
+          "oreDictName": "orePentlandite"
+        },
+        {
+          "role": "secondary",
+          "material": "pentlandite",
+          "oreDictName": "orePentlandite"
+        },
+        {
+          "role": "between",
+          "material": "pentlandite",
+          "oreDictName": "orePentlandite"
+        },
+        {
+          "role": "sporadic",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        }
+      ]
+    },
+    {
+      "id": "nether/redstone_vein",
+      "name": "Redstone Vein",
+      "sourcePath": "nether/redstone_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "redstone",
+          "oreDictName": "oreRedstone"
+        },
+        {
+          "role": "secondary",
+          "material": "redstone",
+          "oreDictName": "oreRedstone"
+        },
+        {
+          "role": "between",
+          "material": "redstone",
+          "oreDictName": "oreRedstone"
+        },
+        {
+          "role": "sporadic",
+          "material": "cinnabar",
+          "oreDictName": "oreCinnabar"
+        }
+      ]
+    },
+    {
+      "id": "nether/rhodochrosite_vein",
+      "name": "Rhodochrosite Vein",
+      "sourcePath": "nether/rhodochrosite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 60,
+      "density": 0.85,
+      "radius": [
+        16,
+        16
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "rhodochrosite",
+          "oreDictName": "oreRhodochrosite"
+        },
+        {
+          "role": "secondary",
+          "material": "fluorite",
+          "oreDictName": "oreFluorite"
+        },
+        {
+          "role": "between",
+          "material": "calcite",
+          "oreDictName": "oreCalcite"
+        },
+        {
+          "role": "sporadic",
+          "material": "tetrahedrite",
+          "oreDictName": "oreTetrahedrite"
+        }
+      ]
+    },
+    {
+      "id": "nether/smithsonite_vein",
+      "name": "Smithsonite Vein",
+      "sourcePath": "nether/smithsonite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "smithsonite",
+          "oreDictName": "oreSmithsonite"
+        },
+        {
+          "role": "secondary",
+          "material": "smithsonite",
+          "oreDictName": "oreSmithsonite"
+        },
+        {
+          "role": "between",
+          "material": "smithsonite",
+          "oreDictName": "oreSmithsonite"
+        },
+        {
+          "role": "sporadic",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        }
+      ]
+    },
+    {
+      "id": "nether/sphalerite_vein",
+      "name": "Sphalerite Vein",
+      "sourcePath": "nether/sphalerite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        },
+        {
+          "role": "secondary",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        },
+        {
+          "role": "between",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        },
+        {
+          "role": "sporadic",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        }
+      ]
+    },
+    {
+      "id": "nether/sulfur_deposit_vein",
+      "name": "Sulfur Deposit Vein",
+      "sourcePath": "nether/sulfur_deposit_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 120,
+      "density": 0.8,
+      "radius": [
+        16,
+        16
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "sulfur",
+          "oreDictName": "oreSulfur",
+          "block": "susy:resource_block",
+          "variant": "sulfur"
+        },
+        {
+          "role": "secondary",
+          "material": "sulfur",
+          "oreDictName": "oreSulfur",
+          "block": "susy:resource_block",
+          "variant": "sulfur"
+        },
+        {
+          "role": "between",
+          "material": "sulfur",
+          "oreDictName": "oreSulfur",
+          "block": "susy:resource_block",
+          "variant": "sulfur"
+        },
+        {
+          "role": "sporadic",
+          "material": "sulfur",
+          "oreDictName": "oreSulfur",
+          "block": "susy:resource_block",
+          "variant": "sulfur"
+        }
+      ]
+    },
+    {
+      "id": "nether/tantalite_vein",
+      "name": "Tantalite Vein",
+      "sourcePath": "nether/tantalite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 30,
+      "density": 0.75,
+      "radius": [
+        8,
+        8
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "tantalite",
+          "oreDictName": "oreTantalite"
+        },
+        {
+          "role": "secondary",
+          "material": "columbite",
+          "oreDictName": "oreColumbite"
+        },
+        {
+          "role": "between",
+          "material": "pyrochlore",
+          "oreDictName": "orePyrochlore"
+        },
+        {
+          "role": "sporadic",
+          "material": "banded_iron",
+          "oreDictName": "oreBandedIron"
+        }
+      ]
+    },
+    {
+      "id": "nether/vanadinite_vein",
+      "name": "Vanadinite Vein",
+      "sourcePath": "nether/vanadinite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 60,
+      "density": 0.75,
+      "radius": [
+        18,
+        18
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "vanadinite",
+          "oreDictName": "oreVanadinite"
+        },
+        {
+          "role": "secondary",
+          "material": "galena",
+          "oreDictName": "oreGalena"
+        },
+        {
+          "role": "between",
+          "material": "barite",
+          "oreDictName": "oreBarite"
+        },
+        {
+          "role": "sporadic",
+          "material": "wulfenite",
+          "oreDictName": "oreWulfenite"
+        }
+      ]
+    },
+    {
+      "id": "nether/wolframite_vein",
+      "name": "Wolframite Vein",
+      "sourcePath": "nether/wolframite_vein.json",
+      "dimensionIds": [
+        -1
+      ],
+      "dimensionNames": [
+        "Nether"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 30,
+      "density": 0.75,
+      "radius": [
+        8,
+        8
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "wolframite",
+          "oreDictName": "oreWolframite"
+        },
+        {
+          "role": "secondary",
+          "material": "scheelite",
+          "oreDictName": "oreScheelite"
+        },
+        {
+          "role": "between",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        },
+        {
+          "role": "sporadic",
+          "material": "bismuthinite",
+          "oreDictName": "oreBismuthinite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/alluvial_platinum_vein",
+      "name": "Alluvial Platinum Vein",
+      "sourcePath": "overworld/alluvial_platinum_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 40,
+      "density": 0.75,
+      "radius": [
+        10,
+        10
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "platinum_placer",
+          "oreDictName": "orePlatinumPlacer",
+          "block": "susy:resource_block",
+          "variant": "platinum_placer"
+        },
+        {
+          "role": "secondary",
+          "material": "platinum_placer",
+          "oreDictName": "orePlatinumPlacer",
+          "block": "susy:resource_block",
+          "variant": "platinum_placer"
+        },
+        {
+          "role": "between",
+          "material": "platinum_placer",
+          "oreDictName": "orePlatinumPlacer",
+          "block": "susy:resource_block",
+          "variant": "platinum_placer"
+        },
+        {
+          "role": "sporadic",
+          "material": "platinum_placer",
+          "oreDictName": "orePlatinumPlacer",
+          "block": "susy:resource_block",
+          "variant": "platinum_placer"
+        }
+      ]
+    },
+    {
+      "id": "overworld/anglesite_vein",
+      "name": "Anglesite Vein",
+      "sourcePath": "overworld/anglesite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 60,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "anglesite",
+          "oreDictName": "oreAnglesite"
+        },
+        {
+          "role": "secondary",
+          "material": "anglesite",
+          "oreDictName": "oreAnglesite"
+        },
+        {
+          "role": "between",
+          "material": "anglesite",
+          "oreDictName": "oreAnglesite"
+        },
+        {
+          "role": "sporadic",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/apatite_vein",
+      "name": "Apatite Vein",
+      "sourcePath": "overworld/apatite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 80,
+      "density": 1,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "chlorapatite",
+          "oreDictName": "oreChlorapatite"
+        },
+        {
+          "role": "secondary",
+          "material": "fluorapatite",
+          "oreDictName": "oreFluorapatite"
+        },
+        {
+          "role": "between",
+          "material": "chlorapatite",
+          "oreDictName": "oreChlorapatite"
+        },
+        {
+          "role": "sporadic",
+          "material": "hydroxyapatite",
+          "oreDictName": "oreHydroxyapatite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/arsenopyrite_vein",
+      "name": "Arsenopyrite Vein",
+      "sourcePath": "overworld/arsenopyrite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 60,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "arsenopyrite",
+          "oreDictName": "oreArsenopyrite"
+        },
+        {
+          "role": "secondary",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        },
+        {
+          "role": "between",
+          "material": "arsenopyrite",
+          "oreDictName": "oreArsenopyrite"
+        },
+        {
+          "role": "sporadic",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/banded_iron_vein",
+      "name": "Banded Iron Vein",
+      "sourcePath": "overworld/banded_iron_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 120,
+      "density": 1,
+      "radius": [
+        30,
+        30
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "banded_iron",
+          "oreDictName": "oreBandedIron"
+        },
+        {
+          "role": "secondary",
+          "material": "banded_iron",
+          "oreDictName": "oreBandedIron"
+        },
+        {
+          "role": "between",
+          "material": "banded_iron",
+          "oreDictName": "oreBandedIron"
+        },
+        {
+          "role": "sporadic",
+          "material": "banded_iron",
+          "oreDictName": "oreBandedIron"
+        }
+      ]
+    },
+    {
+      "id": "overworld/bauxite_vein",
+      "name": "Bauxite Vein",
+      "sourcePath": "overworld/bauxite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 255,
+      "weight": 120,
+      "density": 1,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "bauxite",
+          "oreDictName": "oreBauxite",
+          "block": "susy:resource_block",
+          "variant": "bauxite"
+        },
+        {
+          "role": "secondary",
+          "material": "bauxite",
+          "oreDictName": "oreBauxite",
+          "block": "susy:resource_block",
+          "variant": "bauxite"
+        },
+        {
+          "role": "between",
+          "material": "bauxite",
+          "oreDictName": "oreBauxite",
+          "block": "susy:resource_block",
+          "variant": "bauxite"
+        },
+        {
+          "role": "sporadic",
+          "material": "ilmenite",
+          "oreDictName": "oreIlmenite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/bog_iron",
+      "name": "Bog Iron",
+      "sourcePath": "overworld/bog_iron.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 120,
+      "density": 0,
+      "radius": [
+        50,
+        50
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "secondary",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "between",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "sporadic",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/bornite_vein",
+      "name": "Bornite Vein",
+      "sourcePath": "overworld/bornite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "bornite",
+          "oreDictName": "oreBornite"
+        },
+        {
+          "role": "secondary",
+          "material": "bornite",
+          "oreDictName": "oreBornite"
+        },
+        {
+          "role": "between",
+          "material": "bornite",
+          "oreDictName": "oreBornite"
+        },
+        {
+          "role": "sporadic",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/carbonate_evaporite_deposit",
+      "name": "Carbonate Evaporite Deposit",
+      "sourcePath": "overworld/carbonate_evaporite_deposit.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 58,
+      "maxHeight": 70,
+      "weight": 80,
+      "density": 0.9,
+      "radius": [
+        32,
+        32
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "carbonate_evaporite",
+          "oreDictName": "oreCarbonateEvaporite",
+          "block": "susy:resource_block",
+          "variant": "carbonate_evaporite"
+        },
+        {
+          "role": "secondary",
+          "material": "carbonate_evaporite",
+          "oreDictName": "oreCarbonateEvaporite",
+          "block": "susy:resource_block",
+          "variant": "carbonate_evaporite"
+        },
+        {
+          "role": "between",
+          "material": "carbonate_evaporite",
+          "oreDictName": "oreCarbonateEvaporite",
+          "block": "susy:resource_block",
+          "variant": "carbonate_evaporite"
+        },
+        {
+          "role": "sporadic",
+          "material": "carbonate_evaporite",
+          "oreDictName": "oreCarbonateEvaporite",
+          "block": "susy:resource_block",
+          "variant": "carbonate_evaporite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/cassiterite_vein",
+      "name": "Cassiterite Vein",
+      "sourcePath": "overworld/cassiterite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        30,
+        30
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        },
+        {
+          "role": "secondary",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        },
+        {
+          "role": "between",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        },
+        {
+          "role": "sporadic",
+          "material": "cassiterite",
+          "oreDictName": "oreCassiterite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/cerussite_vein",
+      "name": "Cerussite Vein",
+      "sourcePath": "overworld/cerussite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 60,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "cerussite",
+          "oreDictName": "oreCerussite"
+        },
+        {
+          "role": "secondary",
+          "material": "cerussite",
+          "oreDictName": "oreCerussite"
+        },
+        {
+          "role": "between",
+          "material": "cerussite",
+          "oreDictName": "oreCerussite"
+        },
+        {
+          "role": "sporadic",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/cinnabar_vein",
+      "name": "Cinnabar Vein",
+      "sourcePath": "overworld/cinnabar_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "cinnabar",
+          "oreDictName": "oreCinnabar"
+        },
+        {
+          "role": "secondary",
+          "material": "cinnabar",
+          "oreDictName": "oreCinnabar"
+        },
+        {
+          "role": "between",
+          "material": "cinnabar",
+          "oreDictName": "oreCinnabar"
+        },
+        {
+          "role": "sporadic",
+          "material": "stibnite",
+          "oreDictName": "oreStibnite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/coal_deposit_vein",
+      "name": "Coal Deposit Vein",
+      "sourcePath": "overworld/coal_deposit_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 60,
+      "weight": 180,
+      "density": 1,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "coal",
+          "oreDictName": "oreCoal",
+          "block": "susy:resource_block",
+          "variant": "coal"
+        },
+        {
+          "role": "secondary",
+          "material": "coal",
+          "oreDictName": "oreCoal",
+          "block": "susy:resource_block",
+          "variant": "coal"
+        },
+        {
+          "role": "between",
+          "material": "coal",
+          "oreDictName": "oreCoal",
+          "block": "susy:resource_block",
+          "variant": "coal"
+        },
+        {
+          "role": "sporadic",
+          "material": "coal",
+          "oreDictName": "oreCoal",
+          "block": "susy:resource_block",
+          "variant": "coal"
+        }
+      ]
+    },
+    {
+      "id": "overworld/cobaltite_vein",
+      "name": "Cobaltite Vein",
+      "sourcePath": "overworld/cobaltite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 70,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "cobaltite",
+          "oreDictName": "oreCobaltite"
+        },
+        {
+          "role": "secondary",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        },
+        {
+          "role": "between",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "sporadic",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/electrum_vein",
+      "name": "Electrum Vein",
+      "sourcePath": "overworld/electrum_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 30,
+      "density": 1,
+      "radius": [
+        8,
+        8
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "raw_electrum",
+          "oreDictName": "oreRawElectrum"
+        },
+        {
+          "role": "secondary",
+          "material": "raw_electrum",
+          "oreDictName": "oreRawElectrum"
+        },
+        {
+          "role": "between",
+          "material": "raw_electrum",
+          "oreDictName": "oreRawElectrum"
+        },
+        {
+          "role": "sporadic",
+          "material": "raw_electrum",
+          "oreDictName": "oreRawElectrum"
+        }
+      ]
+    },
+    {
+      "id": "overworld/fluorite_vein",
+      "name": "Fluorite Vein",
+      "sourcePath": "overworld/fluorite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "fluorite",
+          "oreDictName": "oreFluorite"
+        },
+        {
+          "role": "secondary",
+          "material": "fluorite",
+          "oreDictName": "oreFluorite"
+        },
+        {
+          "role": "between",
+          "material": "fluorite",
+          "oreDictName": "oreFluorite"
+        },
+        {
+          "role": "sporadic",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/galena_vein",
+      "name": "Galena Vein",
+      "sourcePath": "overworld/galena_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 60,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "galena",
+          "oreDictName": "oreGalena"
+        },
+        {
+          "role": "secondary",
+          "material": "galena",
+          "oreDictName": "oreGalena"
+        },
+        {
+          "role": "between",
+          "material": "galena",
+          "oreDictName": "oreGalena"
+        },
+        {
+          "role": "sporadic",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/garnierite_vein",
+      "name": "Garnierite Vein",
+      "sourcePath": "overworld/garnierite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 60,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "garnierite",
+          "oreDictName": "oreGarnierite"
+        },
+        {
+          "role": "secondary",
+          "material": "garnierite",
+          "oreDictName": "oreGarnierite"
+        },
+        {
+          "role": "between",
+          "material": "garnierite",
+          "oreDictName": "oreGarnierite"
+        },
+        {
+          "role": "sporadic",
+          "material": "garnierite",
+          "oreDictName": "oreGarnierite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/halide_evaporite_deposit",
+      "name": "Halide Evaporite Deposit",
+      "sourcePath": "overworld/halide_evaporite_deposit.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 58,
+      "maxHeight": 70,
+      "weight": 80,
+      "density": 0.9,
+      "radius": [
+        32,
+        32
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "halide_evaporite",
+          "oreDictName": "oreHalideEvaporite",
+          "block": "susy:resource_block",
+          "variant": "halide_evaporite"
+        },
+        {
+          "role": "secondary",
+          "material": "halide_evaporite",
+          "oreDictName": "oreHalideEvaporite",
+          "block": "susy:resource_block",
+          "variant": "halide_evaporite"
+        },
+        {
+          "role": "between",
+          "material": "halide_evaporite",
+          "oreDictName": "oreHalideEvaporite",
+          "block": "susy:resource_block",
+          "variant": "halide_evaporite"
+        },
+        {
+          "role": "sporadic",
+          "material": "halide_evaporite",
+          "oreDictName": "oreHalideEvaporite",
+          "block": "susy:resource_block",
+          "variant": "halide_evaporite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/kieselguhr_deposit",
+      "name": "Kieselguhr Deposit",
+      "sourcePath": "overworld/kieselguhr_deposit.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 58,
+      "maxHeight": 70,
+      "weight": 30,
+      "density": 0.9,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "diatomite",
+          "oreDictName": "oreDiatomite"
+        },
+        {
+          "role": "secondary",
+          "material": "diatomite",
+          "oreDictName": "oreDiatomite"
+        },
+        {
+          "role": "between",
+          "material": "diatomite",
+          "oreDictName": "oreDiatomite"
+        },
+        {
+          "role": "sporadic",
+          "material": "diatomite",
+          "oreDictName": "oreDiatomite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/lapis_vein",
+      "name": "Lapis Vein",
+      "sourcePath": "overworld/lapis_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 60,
+      "maxHeight": 255,
+      "weight": 180,
+      "density": 1,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "lapis",
+          "oreDictName": "oreLapis"
+        },
+        {
+          "role": "secondary",
+          "material": "calcite",
+          "oreDictName": "oreCalcite"
+        },
+        {
+          "role": "between",
+          "material": "lazurite",
+          "oreDictName": "oreLazurite"
+        },
+        {
+          "role": "sporadic",
+          "material": "sodalite",
+          "oreDictName": "oreSodalite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/lignite_deposit_vein",
+      "name": "Lignite Deposit Vein",
+      "sourcePath": "overworld/lignite_deposit_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 60,
+      "maxHeight": 255,
+      "weight": 180,
+      "density": 1,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "lignite",
+          "oreDictName": "oreLignite",
+          "block": "susy:resource_block_1",
+          "variant": "lignite"
+        },
+        {
+          "role": "secondary",
+          "material": "lignite",
+          "oreDictName": "oreLignite",
+          "block": "susy:resource_block_1",
+          "variant": "lignite"
+        },
+        {
+          "role": "between",
+          "material": "lignite",
+          "oreDictName": "oreLignite",
+          "block": "susy:resource_block_1",
+          "variant": "lignite"
+        },
+        {
+          "role": "sporadic",
+          "material": "lignite",
+          "oreDictName": "oreLignite",
+          "block": "susy:resource_block_1",
+          "variant": "lignite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/magnetite_vein",
+      "name": "Magnetite Vein",
+      "sourcePath": "overworld/magnetite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        30,
+        30
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "secondary",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "between",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        },
+        {
+          "role": "sporadic",
+          "material": "magnetite",
+          "oreDictName": "oreMagnetite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/malachite_vein",
+      "name": "Malachite Vein",
+      "sourcePath": "overworld/malachite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        25,
+        25
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "malachite",
+          "oreDictName": "oreMalachite"
+        },
+        {
+          "role": "secondary",
+          "material": "malachite",
+          "oreDictName": "oreMalachite"
+        },
+        {
+          "role": "between",
+          "material": "malachite",
+          "oreDictName": "oreMalachite"
+        },
+        {
+          "role": "sporadic",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/native_copper_vein",
+      "name": "Native Copper Vein",
+      "sourcePath": "overworld/native_copper_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 50,
+      "maxHeight": 80,
+      "weight": 30,
+      "density": 0.25,
+      "radius": [
+        4,
+        12
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "native_copper",
+          "oreDictName": "oreNativeCopper",
+          "block": "susy:resource_block_1",
+          "variant": "native_copper"
+        },
+        {
+          "role": "secondary",
+          "material": "native_copper",
+          "oreDictName": "oreNativeCopper",
+          "block": "susy:resource_block_1",
+          "variant": "native_copper"
+        },
+        {
+          "role": "between",
+          "material": "native_copper",
+          "oreDictName": "oreNativeCopper",
+          "block": "susy:resource_block_1",
+          "variant": "native_copper"
+        },
+        {
+          "role": "sporadic",
+          "material": "native_copper",
+          "oreDictName": "oreNativeCopper",
+          "block": "susy:resource_block_1",
+          "variant": "native_copper"
+        }
+      ]
+    },
+    {
+      "id": "overworld/non_marine_evaporite_deposit",
+      "name": "Non Marine Evaporite Deposit",
+      "sourcePath": "overworld/non_marine_evaporite_deposit.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 58,
+      "maxHeight": 70,
+      "weight": 80,
+      "density": 0.9,
+      "radius": [
+        32,
+        32
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "non_marine_evaporite",
+          "oreDictName": "oreNonMarineEvaporite",
+          "block": "susy:resource_block",
+          "variant": "non_marine_evaporite"
+        },
+        {
+          "role": "secondary",
+          "material": "non_marine_evaporite",
+          "oreDictName": "oreNonMarineEvaporite",
+          "block": "susy:resource_block",
+          "variant": "non_marine_evaporite"
+        },
+        {
+          "role": "between",
+          "material": "non_marine_evaporite",
+          "oreDictName": "oreNonMarineEvaporite",
+          "block": "susy:resource_block",
+          "variant": "non_marine_evaporite"
+        },
+        {
+          "role": "sporadic",
+          "material": "non_marine_evaporite",
+          "oreDictName": "oreNonMarineEvaporite",
+          "block": "susy:resource_block",
+          "variant": "non_marine_evaporite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/pentlandite_vein",
+      "name": "Pentlandite Vein",
+      "sourcePath": "overworld/pentlandite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "pentlandite",
+          "oreDictName": "orePentlandite"
+        },
+        {
+          "role": "secondary",
+          "material": "chalcopyrite",
+          "oreDictName": "oreChalcopyrite"
+        },
+        {
+          "role": "between",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        },
+        {
+          "role": "sporadic",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/phosphorite_vein",
+      "name": "Phosphorite Vein",
+      "sourcePath": "overworld/phosphorite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 120,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "phosphorite",
+          "oreDictName": "orePhosphorite",
+          "block": "susy:resource_block",
+          "variant": "phosphorite"
+        },
+        {
+          "role": "secondary",
+          "material": "phosphorite",
+          "oreDictName": "orePhosphorite",
+          "block": "susy:resource_block",
+          "variant": "phosphorite"
+        },
+        {
+          "role": "between",
+          "material": "phosphorite",
+          "oreDictName": "orePhosphorite",
+          "block": "susy:resource_block",
+          "variant": "phosphorite"
+        },
+        {
+          "role": "sporadic",
+          "material": "chlorapatite",
+          "oreDictName": "oreChlorapatite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/platinum_vein",
+      "name": "Platinum Vein",
+      "sourcePath": "overworld/platinum_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 58,
+      "maxHeight": 70,
+      "weight": 5,
+      "density": 0.9,
+      "radius": [
+        32,
+        32
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "pentlandite",
+          "oreDictName": "orePentlandite"
+        },
+        {
+          "role": "secondary",
+          "material": "sperrylite",
+          "oreDictName": "oreSperrylite"
+        },
+        {
+          "role": "between",
+          "material": "cooperite",
+          "oreDictName": "oreCooperite"
+        },
+        {
+          "role": "sporadic",
+          "material": "braggite",
+          "oreDictName": "oreBraggite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/potash_deposit",
+      "name": "Potash Deposit",
+      "sourcePath": "overworld/potash_deposit.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 58,
+      "maxHeight": 70,
+      "weight": 40,
+      "density": 0.5,
+      "radius": [
+        32,
+        32
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "potash",
+          "oreDictName": "orePotash",
+          "block": "susy:resource_block",
+          "variant": "potash"
+        },
+        {
+          "role": "secondary",
+          "material": "potash",
+          "oreDictName": "orePotash",
+          "block": "susy:resource_block",
+          "variant": "potash"
+        },
+        {
+          "role": "between",
+          "material": "potash",
+          "oreDictName": "orePotash",
+          "block": "susy:resource_block",
+          "variant": "potash"
+        },
+        {
+          "role": "sporadic",
+          "material": "potash",
+          "oreDictName": "orePotash",
+          "block": "susy:resource_block",
+          "variant": "potash"
+        }
+      ]
+    },
+    {
+      "id": "overworld/proustite_vein",
+      "name": "Proustite Vein",
+      "sourcePath": "overworld/proustite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "proustite",
+          "oreDictName": "oreProustite"
+        },
+        {
+          "role": "secondary",
+          "material": "proustite",
+          "oreDictName": "oreProustite"
+        },
+        {
+          "role": "between",
+          "material": "proustite",
+          "oreDictName": "oreProustite"
+        },
+        {
+          "role": "sporadic",
+          "material": "galena",
+          "oreDictName": "oreGalena"
+        }
+      ]
+    },
+    {
+      "id": "overworld/pyrite_vein",
+      "name": "Pyrite Vein",
+      "sourcePath": "overworld/pyrite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 120,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        },
+        {
+          "role": "secondary",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        },
+        {
+          "role": "between",
+          "material": "pyrite",
+          "oreDictName": "orePyrite"
+        },
+        {
+          "role": "sporadic",
+          "material": "sphalerite",
+          "oreDictName": "oreSphalerite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/pyrolusite_vein",
+      "name": "Pyrolusite Vein",
+      "sourcePath": "overworld/pyrolusite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "pyrolusite",
+          "oreDictName": "orePyrolusite"
+        },
+        {
+          "role": "secondary",
+          "material": "pyrolusite",
+          "oreDictName": "orePyrolusite"
+        },
+        {
+          "role": "between",
+          "material": "pyrolusite",
+          "oreDictName": "orePyrolusite"
+        },
+        {
+          "role": "sporadic",
+          "material": "banded_iron",
+          "oreDictName": "oreBandedIron"
+        }
+      ]
+    },
+    {
+      "id": "overworld/realgar_vein",
+      "name": "Realgar Vein",
+      "sourcePath": "overworld/realgar_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "realgar",
+          "oreDictName": "oreRealgar"
+        },
+        {
+          "role": "secondary",
+          "material": "realgar",
+          "oreDictName": "oreRealgar"
+        },
+        {
+          "role": "between",
+          "material": "realgar",
+          "oreDictName": "oreRealgar"
+        },
+        {
+          "role": "sporadic",
+          "material": "galena",
+          "oreDictName": "oreGalena"
+        }
+      ]
+    },
+    {
+      "id": "overworld/redstone_vein",
+      "name": "Redstone Vein",
+      "sourcePath": "overworld/redstone_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "redstone",
+          "oreDictName": "oreRedstone"
+        },
+        {
+          "role": "secondary",
+          "material": "redstone",
+          "oreDictName": "oreRedstone"
+        },
+        {
+          "role": "between",
+          "material": "redstone",
+          "oreDictName": "oreRedstone"
+        },
+        {
+          "role": "sporadic",
+          "material": "cinnabar",
+          "oreDictName": "oreCinnabar"
+        }
+      ]
+    },
+    {
+      "id": "overworld/saltpeter_vein",
+      "name": "Saltpeter Vein",
+      "sourcePath": "overworld/saltpeter_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "saltpeter",
+          "oreDictName": "oreSaltpeter"
+        },
+        {
+          "role": "secondary",
+          "material": "saltpeter",
+          "oreDictName": "oreSaltpeter"
+        },
+        {
+          "role": "between",
+          "material": "saltpeter",
+          "oreDictName": "oreSaltpeter"
+        },
+        {
+          "role": "sporadic",
+          "material": "saltpeter",
+          "oreDictName": "oreSaltpeter"
+        }
+      ]
+    },
+    {
+      "id": "overworld/stibnite_vein",
+      "name": "Stibnite Vein",
+      "sourcePath": "overworld/stibnite_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 50,
+      "density": 0.75,
+      "radius": [
+        20,
+        20
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "stibnite",
+          "oreDictName": "oreStibnite"
+        },
+        {
+          "role": "secondary",
+          "material": "stibnite",
+          "oreDictName": "oreStibnite"
+        },
+        {
+          "role": "between",
+          "material": "stibnite",
+          "oreDictName": "oreStibnite"
+        },
+        {
+          "role": "sporadic",
+          "material": "realgar",
+          "oreDictName": "oreRealgar"
+        }
+      ]
+    },
+    {
+      "id": "overworld/sulfate_evaporite_deposit",
+      "name": "Sulfate Evaporite Deposit",
+      "sourcePath": "overworld/sulfate_evaporite_deposit.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 58,
+      "maxHeight": 70,
+      "weight": 80,
+      "density": 0.9,
+      "radius": [
+        32,
+        32
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "sulfate_evaporite",
+          "oreDictName": "oreSulfateEvaporite",
+          "block": "susy:resource_block",
+          "variant": "sulfate_evaporite"
+        },
+        {
+          "role": "secondary",
+          "material": "sulfate_evaporite",
+          "oreDictName": "oreSulfateEvaporite",
+          "block": "susy:resource_block",
+          "variant": "sulfate_evaporite"
+        },
+        {
+          "role": "between",
+          "material": "sulfate_evaporite",
+          "oreDictName": "oreSulfateEvaporite",
+          "block": "susy:resource_block",
+          "variant": "sulfate_evaporite"
+        },
+        {
+          "role": "sporadic",
+          "material": "sulfate_evaporite",
+          "oreDictName": "oreSulfateEvaporite",
+          "block": "susy:resource_block",
+          "variant": "sulfate_evaporite"
+        }
+      ]
+    },
+    {
+      "id": "overworld/sulfidic_silver_vein",
+      "name": "Sulfidic Silver Vein",
+      "sourcePath": "overworld/sulfidic_silver_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 80,
+      "weight": 80,
+      "density": 0.75,
+      "radius": [
+        16,
+        16
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "acanthite",
+          "oreDictName": "oreAcanthite"
+        },
+        {
+          "role": "secondary",
+          "material": "proustite",
+          "oreDictName": "oreProustite"
+        },
+        {
+          "role": "between",
+          "material": "pyrargyrite",
+          "oreDictName": "orePyrargyrite"
+        },
+        {
+          "role": "sporadic",
+          "material": "silver",
+          "oreDictName": "oreSilver"
+        }
+      ]
+    },
+    {
+      "id": "overworld/sulfur_deposit_vein",
+      "name": "Sulfur Deposit Vein",
+      "sourcePath": "overworld/sulfur_deposit_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 62,
+      "maxHeight": 170,
+      "weight": -1,
+      "density": 0.75,
+      "radius": [
+        16,
+        16
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "sulfur",
+          "oreDictName": "oreSulfur",
+          "block": "susy:resource_block",
+          "variant": "sulfur"
+        },
+        {
+          "role": "secondary",
+          "material": "sulfur",
+          "oreDictName": "oreSulfur",
+          "block": "susy:resource_block",
+          "variant": "sulfur"
+        },
+        {
+          "role": "between",
+          "material": "sulfur",
+          "oreDictName": "oreSulfur",
+          "block": "susy:resource_block",
+          "variant": "sulfur"
+        },
+        {
+          "role": "sporadic",
+          "material": "sulfur",
+          "oreDictName": "oreSulfur",
+          "block": "susy:resource_block",
+          "variant": "sulfur"
+        }
+      ]
+    },
+    {
+      "id": "overworld/talc_vein",
+      "name": "Talc Vein",
+      "sourcePath": "overworld/talc_vein.json",
+      "dimensionIds": [
+        0
+      ],
+      "dimensionNames": [
+        "Overworld"
+      ],
+      "minHeight": 0,
+      "maxHeight": 60,
+      "weight": 90,
+      "density": 1,
+      "radius": [
+        15,
+        15
+      ],
+      "fillerType": "layered",
+      "roles": [
+        {
+          "role": "primary",
+          "material": "talc",
+          "oreDictName": "oreTalc"
+        },
+        {
+          "role": "secondary",
+          "material": "asbestos",
+          "oreDictName": "oreAsbestos"
+        },
+        {
+          "role": "between",
+          "material": "calcite",
+          "oreDictName": "oreCalcite"
+        },
+        {
+          "role": "sporadic",
+          "material": "talc",
+          "oreDictName": "oreTalc"
+        }
+      ]
+    }
+  ]
+}

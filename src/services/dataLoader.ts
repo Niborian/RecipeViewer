@@ -2,6 +2,7 @@ import { inflate } from 'pako';
 import type { ItemRecipeIndex, FluidRecipeIndex, MaterialRecipeIndex } from '../types/recipeIndex';
 import type { Material } from '../types/materials';
 import type { RecipeMapIndex, RecipePropsIndex } from '../types/recipeSearch';
+import type { OreSourceIndex } from '../types/worldgen';
 
 const BASE_PATH = import.meta.env.BASE_URL + 'data/';
 
@@ -175,6 +176,13 @@ export async function loadRecipeMapIndex(): Promise<RecipeMapIndex> {
  */
 export async function loadRecipePropsIndex(): Promise<RecipePropsIndex> {
   return loadCompressedJSON<RecipePropsIndex>('indexes/recipe-props-index.json.gz');
+}
+
+/**
+ * Loads ore source worldgen index
+ */
+export async function loadOreSourceIndex(): Promise<OreSourceIndex> {
+  return loadCompressedJSON<OreSourceIndex>('indexes/ore-source-index.json.gz');
 }
 
 /**

@@ -30,6 +30,7 @@ docs
 public/data/
 
 .claude
+.modpack-snapshot/
 
 # Raw uncompressed recipe dump - use recipedump.json.gz instead
 recipedump.json

@@ -35,6 +35,12 @@ const DEFAULT_TARGET: SimResource = {
   displayName: 'Iron Ingot',
 };
 
+const WORLD_ACCESS_OPTIONS = [
+  { id: 'overworld', label: 'Overworld', dimensions: [0] },
+  { id: 'beneath', label: 'Overworld + Beneath', dimensions: [0, 10] },
+  { id: 'all', label: 'All incl. Nether', dimensions: [0, 10, -1] },
+];
+
 function formatAmount(resource: SimResource, amount: number): string {
   if (resource.type === 'fluid') {
     if (amount >= 1000) return `${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 2)} B`;
@@ -391,6 +397,7 @@ function SimulationPage() {
   const [target, setTarget] = useState<SimResource>(DEFAULT_TARGET);
   const [amount, setAmount] = useState('1');
   const [maxTier, setMaxTier] = useState('HV');
+  const [worldAccess, setWorldAccess] = useState(WORLD_ACCESS_OPTIONS[0].id);
   const [maxOptions, setMaxOptions] = useState('4');
   const [itemSearchData, setItemSearchData] = useState<ItemSearchEntry[]>([]);
   const [fluidSearchData, setFluidSearchData] = useState<FluidSearchEntry[]>([]);
@@ -451,6 +458,7 @@ function SimulationPage() {
       const simulation = await simulateRecipeChain(target, numericAmount, {
         maxTier,
         maxOptions: Math.max(1, Number(maxOptions) || 4),
+        accessibleDimensions: WORLD_ACCESS_OPTIONS.find(option => option.id === worldAccess)?.dimensions || [0],
       }, setProgress);
       setResult(simulation);
     } catch (err) {
@@ -469,7 +477,7 @@ function SimulationPage() {
       </div>
 
       <div className="rounded-lg border border-gray-700 bg-gray-800 p-5">
-        <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+        <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]">
           <div className="relative">
             <label className="mb-1 block text-sm font-medium text-gray-300">Target</label>
             <input
@@ -518,6 +526,17 @@ function SimulationPage() {
               className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-gray-100 outline-none focus:border-cyan-500"
             >
               {VOLTAGE_TIERS.map(tier => <option key={tier} value={tier}>{tier}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-300">World Access</label>
+            <select
+              value={worldAccess}
+              onChange={event => setWorldAccess(event.target.value)}
+              className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-gray-100 outline-none focus:border-cyan-500"
+            >
+              {WORLD_ACCESS_OPTIONS.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
             </select>
           </div>
 

@@ -22,9 +22,11 @@ import {
   loadFluidSearchIndex,
   loadItemRecipeIndex,
   loadItemSearchIndex,
+  loadOreSourceIndex,
 } from './dataLoader';
 import { useRecipeStore } from '../stores/useRecipeStore';
 import { VOLTAGE_TIER_MAX_EUT, VOLTAGE_TIERS } from '../types/recipeSearch';
+import type { OreSourceIndex, OreSourceIndexSource } from '../types/worldgen';
 
 interface ItemSearchEntry {
   displayName?: string;
@@ -56,6 +58,7 @@ interface SimulationContext {
   itemNames: Map<string, string>;
   itemDetails: Map<string, ItemSearchEntry>;
   fluidNames: Map<string, string>;
+  oreSourceIndex: OreSourceIndex;
   settings: Required<SimulationSettings>;
   memo: Map<string, SolveResult>;
   inProgress: Set<string>;
@@ -68,7 +71,8 @@ interface SimulationContext {
 
 const CHANCE_DENOMINATOR = 10000;
 const DEFAULT_MAX_DEPTH = 1024;
-const CACHE_VERSION = 'recipe-simulator-v4';
+const DEFAULT_ACCESSIBLE_DIMENSIONS = [0];
+const CACHE_VERSION = 'recipe-simulator-v5';
 const CACHE_KEYS_KEY = `${CACHE_VERSION}:keys`;
 const MAX_PERSISTED_CACHE_ENTRIES = 8;
 const memoryCache = new Map<string, UnitCacheEntry>();
@@ -86,7 +90,7 @@ function simResourceId(resource: SimResource): string {
 }
 
 function unitCacheKey(target: SimResource, settings: Required<SimulationSettings>): string {
-  return `${CACHE_VERSION}:${settings.maxTier}:${settings.maxOptions}:${simResourceId(target)}`;
+  return `${CACHE_VERSION}:${settings.maxTier}:${settings.maxOptions}:${settings.accessibleDimensions.join(',')}:${simResourceId(target)}`;
 }
 
 function canUseStorage(): boolean {
@@ -212,6 +216,33 @@ function isRawOreItem(resource: SimResource, context: SimulationContext): boolea
     itemResource.endsWith('_ore');
 }
 
+function getOreSources(resource: SimResource, context: SimulationContext): OreSourceIndexSource[] {
+  if (resource.type !== 'item') return [];
+  return context.oreSourceIndex.byItem[resource.key]?.sources || [];
+}
+
+function getAccessibleOreSources(resource: SimResource, context: SimulationContext): OreSourceIndexSource[] {
+  const accessible = new Set(context.settings.accessibleDimensions);
+  return getOreSources(resource, context)
+    .filter(source => source.dimensionIds.some(dimensionId => accessible.has(dimensionId)));
+}
+
+function oreSourceNote(resource: SimResource, context: SimulationContext): string | undefined {
+  const sources = getAccessibleOreSources(resource, context);
+  if (sources.length === 0) return undefined;
+  return sources.slice(0, 3).map(source => {
+    const height = source.minHeight === null || source.maxHeight === null
+      ? ''
+      : ` y${source.minHeight}-${source.maxHeight}`;
+    const roles = source.roles.length > 0 ? ` ${source.roles.join('/')}` : '';
+    return `${source.dimensionNames.join('/')} ${source.name}${height}${roles}`;
+  }).join('; ');
+}
+
+function hasAccessibleOreSource(resource: SimResource, context: SimulationContext): boolean {
+  return getAccessibleOreSources(resource, context).length > 0;
+}
+
 function isBaseFluid(resource: SimResource): boolean {
   if (resource.type !== 'fluid') return false;
   const key = resource.key.toLowerCase();
@@ -235,7 +266,7 @@ function classifyTerminalResource(
 ): 'base' | 'setup' | 'blocked' {
   if (isMachineItem(resource)) return 'blocked';
   if (isReusableToolItem(resource, context)) return 'setup';
-  if (isRawOreItem(resource, context)) return 'base';
+  if (isRawOreItem(resource, context)) return hasAccessibleOreSource(resource, context) ? 'base' : 'blocked';
   if (resource.type === 'fluid') return isBaseFluid(resource) ? 'base' : 'blocked';
   return 'base';
 }
@@ -532,6 +563,7 @@ function addSetupFromPlan(
 function terminalIngredient(
   input: SimIngredient,
   terminal: SolveResult['terminal'],
+  context: SimulationContext,
 ): SimIngredient {
   if (terminal === 'setup') {
     return {
@@ -545,6 +577,12 @@ function terminalIngredient(
       ...input,
       role: 'loop',
       note: input.note || 'circulating loop inventory; make extra to avoid stalls',
+    };
+  }
+  if (terminal === 'base') {
+    return {
+      ...input,
+      note: input.note || oreSourceNote(input.resource, context),
     };
   }
   return input;
@@ -653,7 +691,7 @@ async function solveResourceUnit(
         }
         addSetupFromPlan(scaledChild, setupInputs, setupBaseInputs, loopInputs);
       } else {
-        const terminal = terminalIngredient(input, childResult.terminal || 'base');
+        const terminal = terminalIngredient(input, childResult.terminal || 'base', context);
         if (childResult.terminal === 'setup') {
           addIngredient(setupInputs, terminal);
         } else if (childResult.terminal === 'loop') {
@@ -697,7 +735,7 @@ async function solveResourceUnit(
       if (scaledCatalystPlan) {
         addSetupFromPlan(scaledCatalystPlan, setupInputs, setupBaseInputs, loopInputs);
       } else if (catalystResult.terminal === 'loop') {
-        addIngredient(loopInputs, terminalIngredient(catalyst, 'loop'));
+        addIngredient(loopInputs, terminalIngredient(catalyst, 'loop', context));
       }
     }
     if (blockedByChild) {
@@ -776,6 +814,9 @@ function normalizeSettings(settings: SimulationSettings): Required<SimulationSet
     maxTier: settings.maxTier,
     maxOptions: Math.max(1, settings.maxOptions || 4),
     maxDepth: settings.maxDepth || DEFAULT_MAX_DEPTH,
+    accessibleDimensions: settings.accessibleDimensions?.length
+      ? [...new Set(settings.accessibleDimensions)].sort((a, b) => a - b)
+      : DEFAULT_ACCESSIBLE_DIMENSIONS,
   };
 }
 
@@ -814,11 +855,12 @@ export async function simulateRecipeChain(
     };
   }
 
-  const [itemIndex, fluidIndex, items, fluids] = await Promise.all([
+  const [itemIndex, fluidIndex, items, fluids, oreSourceIndex] = await Promise.all([
     loadItemRecipeIndex(),
     loadFluidRecipeIndex(),
     loadItemSearchIndex() as Promise<ItemSearchEntry[]>,
     loadFluidSearchIndex() as Promise<FluidSearchEntry[]>,
+    loadOreSourceIndex(),
   ]);
   const { itemNames, itemDetails, fluidNames } = buildNameMaps(items, fluids);
   const context: SimulationContext = {
@@ -827,6 +869,7 @@ export async function simulateRecipeChain(
     itemNames,
     itemDetails,
     fluidNames,
+    oreSourceIndex,
     settings,
     memo: new Map(),
     inProgress: new Set(),

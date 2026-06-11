@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const RECIPE_DUMP_PATH = path.join(__dirname, '../recipedump.json.gz');
 const RECIPE_DUMP_PATH_UNCOMPRESSED = path.join(__dirname, '../recipedump.json');
+const ORE_SOURCES_PATH = path.join(__dirname, '../data/ore-sources.json');
 const OUTPUT_DIR = path.join(__dirname, '../public/data');
 const RECIPEMAPS_DIR = path.join(OUTPUT_DIR, 'recipemaps');
 const INDEXES_DIR = path.join(OUTPUT_DIR, 'indexes');
@@ -21,6 +22,63 @@ interface RecipeDump {
   smelting: any[];
   gtMTEs: Record<string, any>;
   materials?: Record<string, any>;
+}
+
+interface OreSourceRole {
+  role: string;
+  material: string;
+  oreDictName: string;
+  block?: string;
+  variant?: string;
+}
+
+interface OreSource {
+  id: string;
+  name: string;
+  dimensionIds: number[];
+  dimensionNames: string[];
+  minHeight: number | null;
+  maxHeight: number | null;
+  weight: number | null;
+  density: number | null;
+  radius: number[] | null;
+  roles: OreSourceRole[];
+}
+
+interface OreSourcesFile {
+  modpackVersion: string | null;
+  sources: OreSource[];
+}
+
+interface OreSourceIndexSource {
+  id: string;
+  name: string;
+  dimensionIds: number[];
+  dimensionNames: string[];
+  minHeight: number | null;
+  maxHeight: number | null;
+  weight: number | null;
+  density: number | null;
+  radius: number[] | null;
+  roles: string[];
+  materials: string[];
+  oreDictNames: string[];
+}
+
+interface OreSourceIndexEntry {
+  sources: OreSourceIndexSource[];
+}
+
+interface OreSourceIndex {
+  modpackVersion: string | null;
+  byItem: Record<string, OreSourceIndexEntry>;
+}
+
+interface ItemLike {
+  displayName?: string;
+  resource?: string;
+  metadata?: number;
+  translationKey?: string;
 }
 
 // Recipe index types
@@ -310,6 +368,90 @@ function buildFluidIndex(fluids: any[]) {
     localizedName: fluid.localizedName,
     unlocalizedName: fluid.unlocalizedName,
   }));
+}
+
+function normalizeToken(value: string | undefined): string {
+  return (value || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+function itemMatchesBlockVariant(item: ItemLike, block: string | undefined, variant: string | undefined): boolean {
+  if (!block || !variant || item.resource !== block) return false;
+  const variantToken = normalizeToken(variant);
+  const translationKey = normalizeToken(item.translationKey);
+  const displayName = normalizeToken(item.displayName);
+  return translationKey.endsWith(`_${variantToken}`) || displayName.includes(variantToken);
+}
+
+function findRoleItems(role: OreSourceRole, data: RecipeDump): ItemLike[] {
+  const fromOreDict = (data.oreDict[role.oreDictName] || []) as ItemLike[];
+  const fromVariant = role.block && role.variant
+    ? (data.items as ItemLike[]).filter(item => itemMatchesBlockVariant(item, role.block, role.variant))
+    : [];
+  const byKey = new Map<string, ItemLike>();
+  for (const item of [...fromOreDict, ...fromVariant]) {
+    if (item.resource) {
+      byKey.set(makeItemKey(item.resource, item.metadata ?? 0), item);
+    }
+  }
+  return [...byKey.values()];
+}
+
+function upsertOreSource(
+  entry: OreSourceIndexEntry,
+  source: OreSource,
+  role: OreSourceRole,
+): void {
+  let indexed = entry.sources.find(candidate => candidate.id === source.id);
+  if (!indexed) {
+    indexed = {
+      id: source.id,
+      name: source.name,
+      dimensionIds: source.dimensionIds,
+      dimensionNames: source.dimensionNames,
+      minHeight: source.minHeight,
+      maxHeight: source.maxHeight,
+      weight: source.weight,
+      density: source.density,
+      radius: source.radius,
+      roles: [],
+      materials: [],
+      oreDictNames: [],
+    };
+    entry.sources.push(indexed);
+  }
+  if (!indexed.roles.includes(role.role)) indexed.roles.push(role.role);
+  if (!indexed.materials.includes(role.material)) indexed.materials.push(role.material);
+  if (!indexed.oreDictNames.includes(role.oreDictName)) indexed.oreDictNames.push(role.oreDictName);
+}
+
+function buildOreSourceIndex(data: RecipeDump): OreSourceIndex | null {
+  if (!fs.existsSync(ORE_SOURCES_PATH)) return null;
+
+  const oreSources = JSON.parse(fs.readFileSync(ORE_SOURCES_PATH, 'utf8')) as OreSourcesFile;
+  const byItem: Record<string, OreSourceIndexEntry> = {};
+
+  for (const source of oreSources.sources) {
+    for (const role of source.roles) {
+      for (const item of findRoleItems(role, data)) {
+        const key = makeItemKey(item.resource, item.metadata ?? 0);
+        byItem[key] ||= { sources: [] };
+        upsertOreSource(byItem[key], source, role);
+      }
+    }
+  }
+
+  for (const entry of Object.values(byItem)) {
+    entry.sources.sort((a, b) => {
+      const dimA = Math.min(...a.dimensionIds);
+      const dimB = Math.min(...b.dimensionIds);
+      return dimA - dimB || a.name.localeCompare(b.name);
+    });
+  }
+
+  return {
+    modpackVersion: oreSources.modpackVersion,
+    byItem,
+  };
 }
 
 // Material recipe index types
@@ -846,6 +988,17 @@ async function processRecipeDump() {
   };
   writeCompressed(path.join(INDEXES_DIR, 'recipe-props-index.json'), recipePropsIndex);
   console.log(`    Props: ${propsStats.cleanroomTypes} cleanroom types, ${propsStats.dimensionIds} dimensions, ${propsStats.withTemperature} with temperature, ${propsStats.tieredRecipes} tiered`);
+
+  // Build ore source index from committed worldgen extraction, when available
+  console.log('  Building ore source index...');
+  const oreSourceIndex = buildOreSourceIndex(data);
+  if (oreSourceIndex) {
+    writeCompressed(path.join(INDEXES_DIR, 'ore-source-index.json'), oreSourceIndex);
+    console.log(`    Ore source items: ${Object.keys(oreSourceIndex.byItem).length.toLocaleString()}, modpack: ${oreSourceIndex.modpackVersion || 'unknown'}`);
+  } else {
+    writeCompressed(path.join(INDEXES_DIR, 'ore-source-index.json'), { modpackVersion: null, byItem: {} });
+    console.log('    No data/ore-sources.json found; wrote empty ore source index');
+  }
 
   console.log('');
 

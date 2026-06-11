@@ -51,6 +51,7 @@ export interface SimulationSettings {
   maxTier: string;
   maxOptions: number;
   maxDepth?: number;
+  accessibleDimensions?: number[];
 }
 
 export interface SimulationProgress {
