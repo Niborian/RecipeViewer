@@ -8,6 +8,7 @@ import FluidDetailPage from './routes/FluidDetailPage';
 import MaterialsPage from './routes/MaterialsPage';
 import MaterialDetailPage from './routes/MaterialDetailPage';
 import RecipeSearchPage from './routes/RecipeSearchPage';
+import SimulationPage from './routes/SimulationPage';
 
 const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
 
@@ -26,6 +27,7 @@ function App() {
             <Route path="/materials" element={<MaterialsPage />} />
             <Route path="/materials/:unlocalizedName" element={<MaterialDetailPage />} />
             <Route path="/recipes" element={<RecipeSearchPage />} />
+            <Route path="/simulate" element={<SimulationPage />} />
           </Routes>
         </main>
         <footer className="border-t border-gray-800 py-6 mt-8">

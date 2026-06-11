@@ -22,6 +22,9 @@ function Header() {
             <Link to="/recipes" className="hover:text-cyan-400 transition">
               Recipes
             </Link>
+            <Link to="/simulate" className="hover:text-cyan-400 transition">
+              Simulate
+            </Link>
           </nav>
         </div>
       </div>
