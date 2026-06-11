@@ -2,11 +2,6 @@
 	root * /srv
 	header X-Robots-Tag "noindex, nofollow, noarchive"
 
-	handle /robots.txt {
-		header Content-Type text/plain
-		respond "User-agent: *\nDisallow: /\n" 200
-	}
-
 	handle {
 		@recipeData path /data/*.json.gz /data/indexes/*.json.gz /data/recipemaps/*.json.gz
 		header @recipeData Content-Type application/octet-stream
