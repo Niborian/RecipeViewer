@@ -43,13 +43,18 @@ interface UnitCacheEntry {
   warnings: string[];
 }
 
+interface SolveResult {
+  options: SimRecipeOption[];
+  blocked: boolean;
+}
+
 interface SimulationContext {
   itemIndex: Record<string, RecipeIndexEntry>;
   fluidIndex: Record<string, RecipeIndexEntry>;
   itemNames: Map<string, string>;
   fluidNames: Map<string, string>;
   settings: Required<SimulationSettings>;
-  memo: Map<string, SimRecipeOption[]>;
+  memo: Map<string, SolveResult>;
   inProgress: Set<string>;
   warnings: string[];
   progress?: (progress: SimulationProgress) => void;
@@ -59,8 +64,8 @@ interface SimulationContext {
 }
 
 const CHANCE_DENOMINATOR = 10000;
-const DEFAULT_MAX_DEPTH = 64;
-const CACHE_VERSION = 'recipe-simulator-v2';
+const DEFAULT_MAX_DEPTH = 1024;
+const CACHE_VERSION = 'recipe-simulator-v3';
 const CACHE_KEYS_KEY = `${CACHE_VERSION}:keys`;
 const MAX_PERSISTED_CACHE_ENTRIES = 8;
 const memoryCache = new Map<string, UnitCacheEntry>();
@@ -421,7 +426,7 @@ async function solveResourceUnit(
   resource: SimResource,
   depth: number,
   context: SimulationContext,
-): Promise<SimRecipeOption[]> {
+): Promise<SolveResult> {
   const resourceId = simResourceId(resource);
   const memoized = context.memo.get(resourceId);
   if (memoized) {
@@ -430,17 +435,18 @@ async function solveResourceUnit(
   }
   if (context.inProgress.has(resourceId)) {
     context.warnings.push(`Skipped cycle at ${resource.displayName}.`);
-    return [];
+    return { options: [], blocked: true };
   }
   if (depth >= context.settings.maxDepth) {
     context.warnings.push(`Stopped at ${resource.displayName}: automatic depth limit ${context.settings.maxDepth} reached.`);
-    return [];
+    return { options: [], blocked: true };
   }
 
   const refs = getProducerRefs(resource, context);
   if (refs.length === 0) {
-    context.memo.set(resourceId, []);
-    return [];
+    const result = { options: [], blocked: false };
+    context.memo.set(resourceId, result);
+    return result;
   }
 
   context.inProgress.add(resourceId);
@@ -449,6 +455,8 @@ async function solveResourceUnit(
 
   const loadedRecipes = await useRecipeStore.getState().loadRecipeDetails(refs);
   const options: SimRecipeOption[] = [];
+  let blockedRecipeCount = 0;
+  let candidateRecipeCount = 0;
 
   for (let index = 0; index < loadedRecipes.length; index += 1) {
     const loaded = loadedRecipes[index];
@@ -468,17 +476,23 @@ async function solveResourceUnit(
 
     const outputAmount = getOutputAmount(loaded, resource, context);
     if (outputAmount <= 0) continue;
+    candidateRecipeCount += 1;
 
     const batches = 1 / outputAmount;
     const { inputs, catalysts } = getRecipeRequirements(loaded, batches, context);
     const children: SimChildRequirement[] = [];
     const baseInputs: SimIngredient[] = [];
     let childScore = 0;
+    let blockedByChild = false;
 
     for (const input of inputs) {
-      const childOptions = await solveResourceUnit(input.resource, depth + 1, context);
-      const bestUnitChild = childOptions[0] || null;
+      const childResult = await solveResourceUnit(input.resource, depth + 1, context);
+      const bestUnitChild = childResult.options[0] || null;
       const scaledChild = bestUnitChild ? scaleOption(bestUnitChild, input.amount) : null;
+      if (!scaledChild && childResult.blocked) {
+        blockedByChild = true;
+        break;
+      }
       children.push({ ingredient: input, plan: scaledChild });
       if (scaledChild) {
         childScore += scaledChild.score;
@@ -489,6 +503,10 @@ async function solveResourceUnit(
         addIngredient(baseInputs, input);
         childScore += baseCost(input);
       }
+    }
+    if (blockedByChild) {
+      blockedRecipeCount += 1;
+      continue;
     }
 
     const energy = recipeEnergy(loaded, batches);
@@ -522,10 +540,15 @@ async function solveResourceUnit(
     .sort((a, b) => a.score - b.score)
     .slice(0, keepCount);
 
-  context.memo.set(resourceId, sorted);
+  const result = {
+    options: sorted,
+    blocked: sorted.length === 0 && candidateRecipeCount > 0 && blockedRecipeCount === candidateRecipeCount,
+  };
+
+  context.memo.set(resourceId, result);
   context.inProgress.delete(resourceId);
   reportProgress(context, 'solving', `Finished ${resource.displayName}`, resource.displayName);
-  return sorted;
+  return result;
 }
 
 function buildNameMaps(items: ItemSearchEntry[], fluids: FluidSearchEntry[]): {
@@ -608,7 +631,8 @@ export async function simulateRecipeChain(
     cacheHits: 0,
   };
 
-  const unitOptions = await solveResourceUnit(target, 0, context);
+  const unitResult = await solveResourceUnit(target, 0, context);
+  const unitOptions = unitResult.options;
   const warnings = [...new Set(context.warnings)].slice(0, 12);
   saveUnitCache(cacheKey, { options: unitOptions, warnings });
 
