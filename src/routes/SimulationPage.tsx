@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ArrowLeft, ArrowRight, Boxes, ChevronRight, FlaskConical, Loader2, Play, RefreshCw, Wrench, Zap } from 'lucide-react';
 import type { LoadedRecipe } from '../types/recipeIndex';
 import type { CraftingRecipe, Recipe, SmeltingRecipe } from '../types/recipes';
-import type { SimIngredient, SimRecipeOption, SimResource, SimulationResult } from '../types/simulation';
+import type { SimIngredient, SimPlanAlternative, SimRecipeOption, SimResource, SimulationResult } from '../types/simulation';
 import { VOLTAGE_TIERS } from '../types/recipeSearch';
 import { loadFluidSearchIndex, loadItemSearchIndex } from '../services/dataLoader';
 import { simulateRecipeChain } from '../services/recipeSimulator';
@@ -41,11 +41,12 @@ const WORLD_ACCESS_OPTIONS = [
   { id: 'all', label: 'All incl. Nether', dimensions: [0, 10, -1] },
 ];
 
-function formatAmount(resource: SimResource, amount: number): string {
+function formatAmount(resource: SimResource, amount: number, wholeItems = false): string {
   if (resource.type === 'fluid') {
     if (amount >= 1000) return `${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 2)} B`;
     return `${amount.toFixed(amount % 1 === 0 ? 0 : 2)} mB`;
   }
+  if (wholeItems) return Math.ceil(amount).toLocaleString();
   return amount.toFixed(amount % 1 === 0 ? 0 : 2);
 }
 
@@ -75,7 +76,7 @@ function ResourceSlot({ ingredient }: { ingredient: SimIngredient }) {
   return <ItemSlot resource={parsed.resource} metadata={parsed.metadata} count={ingredient.amount} />;
 }
 
-function CompactIngredient({ ingredient }: { ingredient: SimIngredient }) {
+function CompactIngredient({ ingredient, wholeItems = false }: { ingredient: SimIngredient; wholeItems?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded border border-gray-700 bg-gray-900 px-3 py-2">
       <div className="min-w-0">
@@ -83,10 +84,66 @@ function CompactIngredient({ ingredient }: { ingredient: SimIngredient }) {
         <div className="truncate text-xs text-gray-500">{ingredient.note || ingredient.resource.type}</div>
       </div>
       <div className="shrink-0 text-sm font-medium text-gray-300">
-        {formatAmount(ingredient.resource, ingredient.amount)}
+        {formatAmount(ingredient.resource, ingredient.amount, wholeItems)}
       </div>
     </div>
   );
+}
+
+function humanizeRecipeLabel(label: string): string {
+  return label
+    .replace(/^gt\.recipe\./, '')
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function processGroup(label: string): string {
+  const normalized = label.toLowerCase();
+  if (/(eccentric_roll_crusher|macerator|pulver|forge_hammer|milling|ball_mill)/.test(normalized)) {
+    return 'Crushing / pulverization';
+  }
+  if (/(ore_washer|attrition_scrubber|centrifuge|electromagnetic_separator|electrostatic_separator|gravity_separator|froth_flotation)/.test(normalized)) {
+    return 'Ore cleaning / separation';
+  }
+  if (/(smelt|furnace|blast|solidifier)/.test(normalized)) {
+    return 'Smelting / casting';
+  }
+  return humanizeRecipeLabel(label);
+}
+
+function summarizeIngredients(ingredients: SimIngredient[], limit = 3, wholeItems = false): string {
+  if (ingredients.length === 0) return '';
+  const shown = ingredients.slice(0, limit)
+    .map(ingredient => `${formatAmount(ingredient.resource, ingredient.amount, wholeItems)} ${ingredient.resource.displayName}`);
+  return `${shown.join(', ')}${ingredients.length > limit ? `, +${ingredients.length - limit} more` : ''}`;
+}
+
+function primaryBaseInput(option: SimRecipeOption): SimIngredient | null {
+  return option.baseInputs.find(ingredient => ingredient.resource.type === 'item') ||
+    option.baseInputs[0] ||
+    null;
+}
+
+function optionTitle(option: SimRecipeOption): string {
+  const base = primaryBaseInput(option);
+  if (!base) {
+    return `Make ${formatAmount(option.target, option.targetAmount, true)} ${option.target.displayName}`;
+  }
+  return `Put in ${formatAmount(base.resource, base.amount, true)} ${base.resource.displayName} to get ${formatAmount(option.target, option.targetAmount, true)} ${option.target.displayName}`;
+}
+
+function collectRouteLabels(option: SimRecipeOption, labels: string[] = [], seen = new Set<string>()): string[] {
+  const key = `${option.recipeLabel}:${option.tier ?? ''}:${option.target.type}:${option.target.key}`;
+  if (!seen.has(key)) {
+    seen.add(key);
+    const label = humanizeRecipeLabel(option.recipeLabel);
+    labels.push(option.tier ? `${label} (${option.tier})` : label);
+  }
+  for (const child of option.children) {
+    if (child.plan && labels.length < 5) collectRouteLabels(child.plan, labels, seen);
+  }
+  return labels;
 }
 
 function childStatusText(child: { plan: SimRecipeOption | null; status?: string }): string {
@@ -96,12 +153,56 @@ function childStatusText(child: { plan: SimRecipeOption | null; status?: string 
   return '(base input)';
 }
 
+function AlternativeRow({ alternative }: { alternative: SimPlanAlternative }) {
+  const baseSummary = summarizeIngredients(alternative.baseInputs, 3, true);
+  const inputSummary = summarizeIngredients(alternative.inputs, 3, true);
+  return (
+    <div className="grid gap-2 border-t border-gray-800 px-3 py-2 text-sm first:border-t-0 md:grid-cols-[1.3fr_1.7fr_auto]">
+      <div>
+        <div className="font-medium text-gray-200">
+          {humanizeRecipeLabel(alternative.recipeLabel)}{alternative.tier ? ` (${alternative.tier})` : ''}
+        </div>
+        <div className="text-xs text-gray-500">{processGroup(alternative.recipeLabel)}</div>
+      </div>
+      <div className="min-w-0 text-xs text-gray-400">
+        {baseSummary || inputSummary || 'No base input summary'}
+        {alternative.setupInputs.length > 0 && (
+          <span className="text-amber-300"> · {alternative.setupInputs.length} setup</span>
+        )}
+        {alternative.loopInputs.length > 0 && (
+          <span className="text-emerald-300"> · {alternative.loopInputs.length} loop</span>
+        )}
+      </div>
+      <div className="text-xs text-gray-400 md:text-right">
+        <div>score {alternative.score.toFixed(2)}</div>
+        {alternative.totalEU > 0 && <div>{Math.round(alternative.totalEU).toLocaleString()} EU</div>}
+      </div>
+    </div>
+  );
+}
+
+function AlternativeProcesses({ option }: { option: SimRecipeOption }) {
+  if (!option.alternatives || option.alternatives.length === 0) return null;
+  return (
+    <details className="rounded border border-gray-700 bg-gray-900">
+      <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-gray-300">
+        Other ways to make this step ({option.alternatives.length})
+      </summary>
+      <div className="border-t border-gray-700">
+        {option.alternatives.map(alternative => (
+          <AlternativeRow key={alternative.id} alternative={alternative} />
+        ))}
+      </div>
+    </details>
+  );
+}
+
 function PlanNode({ option }: { option: SimRecipeOption }) {
   return (
     <div className="rounded-lg border border-gray-700 bg-gray-850">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-700 bg-gray-800 px-4 py-3">
         <div>
-          <div className="font-medium text-gray-100">{option.recipeLabel}</div>
+          <div className="font-medium text-gray-100">{humanizeRecipeLabel(option.recipeLabel)}</div>
           <div className="text-xs text-gray-500">
             Makes {formatAmount(option.target, option.targetAmount)} {option.target.displayName}
             {option.batches !== 1 ? ` in ${option.batches.toFixed(2)} batches` : ''}
@@ -208,13 +309,15 @@ function collectSteps(option: SimRecipeOption, steps: SimStep[] = [], seen = new
 
 function StepCard({ step }: { step: SimStep }) {
   const option = step.option;
+  const setupSummary = summarizeIngredients([...option.setupInputs, ...option.setupBaseInputs], 4, true);
   return (
     <div className="rounded border border-gray-700 bg-gray-850">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-700 bg-gray-900 px-4 py-3">
         <div>
           <div className="font-medium text-gray-100">{step.label}</div>
           <div className="text-xs text-gray-500">
-            {option.recipeLabel}{option.batches !== 1 ? ` - ${option.batches.toFixed(2)} batches` : ''}
+            {processGroup(option.recipeLabel)} - {humanizeRecipeLabel(option.recipeLabel)}
+            {option.batches !== 1 ? ` - ${option.batches.toFixed(2)} batches` : ''}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
@@ -223,6 +326,14 @@ function StepCard({ step }: { step: SimStep }) {
         </div>
       </div>
       <div className="space-y-4 p-4">
+        {setupSummary && (
+          <div className="rounded border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-sm text-amber-200">
+            1-time setup costs {setupSummary} extra.
+          </div>
+        )}
+
+        <AlternativeProcesses option={option} />
+
         {renderLoadedRecipe(option.loadedRecipe)}
 
         {option.inputs.length > 0 && (
@@ -244,6 +355,7 @@ function StepCard({ step }: { step: SimStep }) {
                 <CompactIngredient
                   key={`${ingredient.resource.type}:${ingredient.resource.key}`}
                   ingredient={{ ...ingredient, note: 'not consumed' }}
+                  wholeItems
                 />
               ))}
             </div>
@@ -294,14 +406,19 @@ function StepPager({ option }: { option: SimRecipeOption }) {
 }
 
 function OptionSummary({ option, index }: { option: SimRecipeOption; index: number }) {
+  const routeLabels = collectRouteLabels(option).slice(0, 4);
+  const setupSummary = summarizeIngredients([...option.setupInputs, ...option.setupBaseInputs], 4, true);
   return (
     <section className="rounded-lg border border-gray-700 bg-gray-800">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-700 px-4 py-3">
         <div>
-          <h2 className="text-lg font-semibold text-gray-100">Option {index + 1}</h2>
+          <h2 className="text-lg font-semibold text-gray-100">{optionTitle(option)}</h2>
           <p className="text-sm text-gray-400">
-            {option.recipeLabel}{option.tier ? ` - ${option.tier}` : ''} - score {option.score.toFixed(2)}
+            Option {index + 1} - {routeLabels.join(' -> ')} - score {option.score.toFixed(2)}
           </p>
+          {setupSummary && (
+            <p className="mt-1 text-xs text-amber-300">1-time setup costs {setupSummary} extra.</p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2 text-xs text-gray-300">
           <span className="rounded bg-gray-900 px-2 py-1">{option.baseInputs.length} base inputs</span>
@@ -322,6 +439,7 @@ function OptionSummary({ option, index }: { option: SimRecipeOption; index: numb
                 <CompactIngredient
                   key={`${ingredient.resource.type}:${ingredient.resource.key}`}
                   ingredient={ingredient}
+                  wholeItems
                 />
               ))}
             </div>
@@ -339,6 +457,7 @@ function OptionSummary({ option, index }: { option: SimRecipeOption; index: numb
                 <CompactIngredient
                   key={`${ingredient.resource.type}:${ingredient.resource.key}:${ingredient.note || ''}`}
                   ingredient={ingredient}
+                  wholeItems
                 />
               ))}
             </div>
@@ -356,6 +475,7 @@ function OptionSummary({ option, index }: { option: SimRecipeOption; index: numb
                 <CompactIngredient
                   key={`${ingredient.resource.type}:${ingredient.resource.key}:${ingredient.note || ''}`}
                   ingredient={ingredient}
+                  wholeItems
                 />
               ))}
             </div>

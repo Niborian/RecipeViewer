@@ -10,6 +10,7 @@ import type {
 import type {
   SimChildRequirement,
   SimIngredient,
+  SimPlanAlternative,
   SimRecipeOption,
   SimResource,
   SimulationProgress,
@@ -71,6 +72,7 @@ interface SimulationContext {
   fluidIndex: Record<string, RecipeIndexEntry>;
   itemNames: Map<string, string>;
   itemDetails: Map<string, ItemSearchEntry>;
+  itemsByDisplayName: Map<string, SimResource[]>;
   fluidNames: Map<string, string>;
   oreDictKeys: string[];
   oreSourceIndex: OreSourceIndex;
@@ -87,13 +89,17 @@ interface SimulationContext {
 const CHANCE_DENOMINATOR = 10000;
 const DEFAULT_MAX_DEPTH = 1024;
 const DEFAULT_ACCESSIBLE_DIMENSIONS = [0];
-const CACHE_VERSION = 'recipe-simulator-v7';
+const CACHE_VERSION = 'recipe-simulator-v8';
 const CACHE_KEYS_KEY = `${CACHE_VERSION}:keys`;
 const MAX_PERSISTED_CACHE_ENTRIES = 8;
 const memoryCache = new Map<string, UnitCacheEntry>();
 
 function itemKey(resource: string, metadata = 0): string {
   return `${resource}:${metadata}`;
+}
+
+function normalizeDisplayName(name: string | undefined): string {
+  return (name || '').trim().toLowerCase();
 }
 
 function refKey(ref: RecipeRef): string {
@@ -197,6 +203,13 @@ function getItemDetails(resource: SimResource, context: SimulationContext): Item
   return context.itemDetails.get(resource.key);
 }
 
+function getProducerRefs(resource: SimResource, context: SimulationContext): RecipeRef[] {
+  const entry = resource.type === 'item'
+    ? context.itemIndex[resource.key]
+    : context.fluidIndex[resource.key];
+  return entry?.asOutput || [];
+}
+
 function resourceText(resource: SimResource, context: SimulationContext): string {
   const item = getItemDetails(resource, context);
   return [
@@ -278,6 +291,20 @@ function isBaseFluid(resource: SimResource): boolean {
     name.includes('air');
 }
 
+function isKnownFeedstockItem(resource: SimResource, context: SimulationContext): boolean {
+  if (resource.type !== 'item') return false;
+  const text = resourceText(resource, context);
+  return /\b(coal|charcoal|coke|anthracite|lignite coke|green coke|heated green coke)\b/.test(text) &&
+    !/\b(ore|block|facade|plate|rod|wire|gear|pipe|casing|hull|machine)\b/.test(text);
+}
+
+function baseResourceNote(resource: SimResource, context: SimulationContext): string | undefined {
+  if (isKnownFeedstockItem(resource, context)) {
+    return 'known carbon feedstock; choose coal, charcoal, coke, or dust variant by recipe efficiency';
+  }
+  return oreSourceNote(resource, context);
+}
+
 function isMoltenMaterialFluid(resource: SimResource): boolean {
   if (resource.type !== 'fluid') return false;
   const key = resource.key.toLowerCase();
@@ -303,10 +330,30 @@ function classifyTerminalResource(
 ): 'base' | 'setup' | 'blocked' {
   if (isMachineItem(resource)) return 'blocked';
   if (isReusableToolItem(resource, context)) return 'setup';
+  if (isKnownFeedstockItem(resource, context)) return 'base';
   if (hasAccessibleOreSource(resource, context)) return 'base';
   if (isRawOreItem(resource, context)) return 'blocked';
   if (resource.type === 'fluid') return isBaseFluid(resource) ? 'base' : 'blocked';
   return 'blocked';
+}
+
+function getEquivalentItemResources(resource: SimResource, context: SimulationContext): SimResource[] {
+  if (resource.type !== 'item') return [];
+  const normalizedName = normalizeDisplayName(resource.displayName);
+  if (!normalizedName) return [];
+
+  const candidates = context.itemsByDisplayName.get(normalizedName) || [];
+  const equivalent: SimResource[] = [];
+  for (const candidate of candidates) {
+    if (resourcesEqual(candidate, resource)) continue;
+    if (isMachineItem(candidate)) continue;
+    const terminal = classifyTerminalResource(candidate, context);
+    if (terminal !== 'blocked' || getProducerRefs(candidate, context).length > 0) {
+      equivalent.push(candidate);
+    }
+    if (equivalent.length >= 6) break;
+  }
+  return equivalent;
 }
 
 function getTierForEUt(EUt: number): { tier: string | null; tierIndex: number | null } {
@@ -441,6 +488,7 @@ function scaleOption(option: SimRecipeOption, factor: number): SimRecipeOption {
     baseInputs: aggregateIngredients(option.baseInputs.map(input => scaleIngredient(input, factor))),
     totalEU: option.totalEU * factor,
     score: option.score * factor,
+    alternatives: option.alternatives?.map(alternative => scalePlanAlternative(alternative, factor)),
   };
 }
 
@@ -495,15 +543,35 @@ function makeItemChoice(
   context: SimulationContext,
   note?: string,
 ): SimIngredientChoice | null {
-  const candidates = uniqueIngredientCandidates((stacks || [])
-    .filter(stack => Boolean(stack.resource))
-    .map(stack => ({
-      resource: makeItemResource(stack, context.itemNames),
+  const candidates: SimIngredient[] = [];
+  for (const stack of stacks || []) {
+    if (!stack.resource) continue;
+    const resource = makeItemResource(stack, context.itemNames);
+    candidates.push({
+      resource,
       amount,
       role,
       note,
-    })));
-  return candidates.length > 0 ? { candidates } : null;
+    });
+
+    const needsEquivalentFallback =
+      classifyTerminalResource(resource, context) === 'blocked' &&
+      getProducerRefs(resource, context).length === 0;
+    if (needsEquivalentFallback) {
+      const equivalentItems = getEquivalentItemResources(resource, context);
+      for (const equivalent of equivalentItems) {
+        candidates.push({
+          resource: equivalent,
+          amount,
+          role,
+          note: [note, `equivalent to ${resource.displayName}`].filter(Boolean).join('; '),
+        });
+      }
+    }
+  }
+
+  const uniqueCandidates = uniqueIngredientCandidates(candidates);
+  return uniqueCandidates.length > 0 ? { candidates: uniqueCandidates } : null;
 }
 
 function makeFluidIngredient(
@@ -633,6 +701,73 @@ function recipeEnergy(loaded: LoadedRecipe, batches: number): {
   return { tier, tierIndex, EUt: recipe.EUt ?? 0, duration, totalEU };
 }
 
+function recipeProcessPenalty(
+  loaded: LoadedRecipe,
+  target: SimResource,
+  selectedInputs: SimIngredient[],
+  context: SimulationContext,
+): number {
+  const label = `${loaded.ref.map || ''} ${recipeLabel(loaded)}`.toLowerCase();
+  const targetText = resourceText(target, context);
+  let penalty = 0;
+
+  if (loaded.ref.type === 'crafting') penalty += 1.5;
+  if (label.includes('primitive')) penalty += 8;
+  if (label.includes('scrap') || label.includes('salvag')) penalty += 40;
+  if (label.includes('compressor') || label.includes('packer')) penalty += 3;
+
+  for (const input of selectedInputs) {
+    const text = resourceText(input.resource, context);
+    if (/\b(block of|nugget|tiny pile|small pile)\b/.test(text)) penalty += 12;
+    if (/\b(ingot|plate|rod|bolt|screw|ring|gear|pipe|wire|cable|foil|frame|casing|hull)\b/.test(text)) {
+      penalty += 4;
+    }
+    if (targetText && text.includes(targetText)) penalty += 20;
+  }
+
+  return penalty;
+}
+
+function makePlanAlternative(option: SimRecipeOption, factor = 1): SimPlanAlternative {
+  return {
+    id: option.id,
+    recipeLabel: option.recipeLabel,
+    tier: option.tier,
+    EUt: option.EUt,
+    duration: option.duration,
+    totalEU: option.totalEU * factor,
+    score: option.score * factor,
+    outputAmount: roundAmount(option.outputAmount * factor),
+    inputs: option.inputs.map(input => scaleIngredient(input, factor)),
+    baseInputs: option.baseInputs.map(input => scaleIngredient(input, factor)),
+    setupInputs: option.setupInputs.map(input => ({ ...input })),
+    loopInputs: option.loopInputs.map(input => ({ ...input })),
+  };
+}
+
+function scalePlanAlternative(alternative: SimPlanAlternative, factor: number): SimPlanAlternative {
+  return {
+    ...alternative,
+    totalEU: alternative.totalEU * factor,
+    score: alternative.score * factor,
+    outputAmount: roundAmount(alternative.outputAmount * factor),
+    inputs: alternative.inputs.map(input => scaleIngredient(input, factor)),
+    baseInputs: alternative.baseInputs.map(input => scaleIngredient(input, factor)),
+    setupInputs: alternative.setupInputs.map(input => ({ ...input })),
+    loopInputs: alternative.loopInputs.map(input => ({ ...input })),
+  };
+}
+
+function attachAlternativeSummaries(options: SimRecipeOption[]): SimRecipeOption[] {
+  const summaries = options.map(option => makePlanAlternative(option));
+  return options.map(option => ({
+    ...option,
+    alternatives: summaries
+      .filter(summary => summary.id !== option.id)
+      .slice(0, 8),
+  }));
+}
+
 function chooseDiverseOptions(options: SimRecipeOption[], keepCount: number): SimRecipeOption[] {
   const sorted = [...options].sort((a, b) => a.score - b.score);
   const selected: SimRecipeOption[] = [];
@@ -700,20 +835,13 @@ function terminalIngredient(
     };
   }
   if (terminal === 'base') {
-    const sourceNote = oreSourceNote(input.resource, context);
+    const sourceNote = baseResourceNote(input.resource, context);
     return {
       ...input,
       note: [input.note, sourceNote].filter(Boolean).join('; ') || undefined,
     };
   }
   return input;
-}
-
-function getProducerRefs(resource: SimResource, context: SimulationContext): RecipeRef[] {
-  const entry = resource.type === 'item'
-    ? context.itemIndex[resource.key]
-    : context.fluidIndex[resource.key];
-  return entry?.asOutput || [];
 }
 
 function ingredientChoicePenalty(ingredient: SimIngredient, context: SimulationContext): number {
@@ -725,7 +853,6 @@ function ingredientChoicePenalty(ingredient: SimIngredient, context: SimulationC
   if (text.includes('cable facade')) penalty += 1000;
   if (isMachineItem(ingredient.resource)) penalty += 1000;
   if (/\bblock of\b/.test(text) || resource.includes('block_') || resource.includes('_block')) penalty += 20;
-  if (hasAccessibleOreSource(ingredient.resource, context)) penalty -= 0.25;
 
   return penalty;
 }
@@ -939,10 +1066,16 @@ async function solveResourceUnit(
       continue;
     }
 
+    if (inputChoices.length > 0 && baseInputs.length === 0 && loopInputs.length === 0) {
+      blockedRecipeCount += 1;
+      continue;
+    }
+
     const energy = recipeEnergy(loaded, batches);
     const tierPenalty = energy.tierIndex === null ? 0 : energy.tierIndex * 0.05;
     const durationPenalty = (energy.duration ?? 0) * batches / 1_000;
-    const score = childScore + energy.totalEU / 1_000_000 + durationPenalty + tierPenalty + depth * 0.01;
+    const processPenalty = recipeProcessPenalty(loaded, resource, selectedInputs, context);
+    const score = childScore + processPenalty + energy.totalEU / 1_000_000 + durationPenalty + tierPenalty + depth * 0.01;
 
     options.push({
       id: `${refKey(loaded.ref)}:unit`,
@@ -971,7 +1104,7 @@ async function solveResourceUnit(
   }
 
   const keepCount = Math.max(context.settings.maxOptions, 12);
-  const sorted = chooseDiverseOptions(options, keepCount);
+  const sorted = attachAlternativeSummaries(chooseDiverseOptions(options, keepCount));
 
   const result = {
     options: sorted,
@@ -988,20 +1121,31 @@ async function solveResourceUnit(
 function buildNameMaps(items: ItemSearchEntry[], fluids: FluidSearchEntry[]): {
   itemNames: Map<string, string>;
   itemDetails: Map<string, ItemSearchEntry>;
+  itemsByDisplayName: Map<string, SimResource[]>;
   fluidNames: Map<string, string>;
 } {
   const itemNames = new Map<string, string>();
   const itemDetails = new Map<string, ItemSearchEntry>();
+  const itemsByDisplayName = new Map<string, SimResource[]>();
   const fluidNames = new Map<string, string>();
   for (const item of items) {
     const key = itemKey(item.resource, item.metadata ?? 0);
-    itemNames.set(key, item.displayName || item.resource);
+    const displayName = item.displayName || item.resource;
+    itemNames.set(key, displayName);
     itemDetails.set(key, item);
+    const normalizedName = normalizeDisplayName(displayName);
+    if (normalizedName) {
+      const entries = itemsByDisplayName.get(normalizedName) || [];
+      if (!entries.some(entry => entry.key === key)) {
+        entries.push({ type: 'item', key, displayName });
+      }
+      itemsByDisplayName.set(normalizedName, entries);
+    }
   }
   for (const fluid of fluids) {
     fluidNames.set(fluid.unlocalizedName, fluid.localizedName || fluid.fluidName || fluid.unlocalizedName);
   }
-  return { itemNames, itemDetails, fluidNames };
+  return { itemNames, itemDetails, itemsByDisplayName, fluidNames };
 }
 
 function normalizeSettings(settings: SimulationSettings): Required<SimulationSettings> {
@@ -1058,12 +1202,13 @@ export async function simulateRecipeChain(
     loadOreDict(),
     loadOreSourceIndex(),
   ]);
-  const { itemNames, itemDetails, fluidNames } = buildNameMaps(items, fluids);
+  const { itemNames, itemDetails, itemsByDisplayName, fluidNames } = buildNameMaps(items, fluids);
   const context: SimulationContext = {
     itemIndex,
     fluidIndex,
     itemNames,
     itemDetails,
+    itemsByDisplayName,
     fluidNames,
     oreDictKeys: Object.keys(oreDict),
     oreSourceIndex,

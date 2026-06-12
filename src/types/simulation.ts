@@ -22,6 +22,21 @@ export interface SimChildRequirement {
   status?: 'planned' | 'base' | 'setup' | 'loop';
 }
 
+export interface SimPlanAlternative {
+  id: string;
+  recipeLabel: string;
+  tier: string | null;
+  EUt: number | null;
+  duration: number | null;
+  totalEU: number;
+  score: number;
+  outputAmount: number;
+  inputs: SimIngredient[];
+  baseInputs: SimIngredient[];
+  setupInputs: SimIngredient[];
+  loopInputs: SimIngredient[];
+}
+
 export interface SimRecipeOption {
   id: string;
   loadedRecipe: LoadedRecipe;
@@ -45,6 +60,7 @@ export interface SimRecipeOption {
   totalEU: number;
   score: number;
   depth: number;
+  alternatives?: SimPlanAlternative[];
 }
 
 export interface SimulationSettings {
