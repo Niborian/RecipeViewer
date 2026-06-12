@@ -68,6 +68,7 @@ export interface SimulationSettings {
   maxOptions: number;
   maxDepth?: number;
   accessibleDimensions?: number[];
+  routePreferences?: Record<string, string>;
 }
 
 export interface SimulationProgress {

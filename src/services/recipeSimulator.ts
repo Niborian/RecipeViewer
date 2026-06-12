@@ -89,10 +89,11 @@ interface SimulationContext {
 const CHANCE_DENOMINATOR = 10000;
 const DEFAULT_MAX_DEPTH = 1024;
 const DEFAULT_ACCESSIBLE_DIMENSIONS = [0];
-const CACHE_VERSION = 'recipe-simulator-v8';
+const CACHE_VERSION = 'recipe-simulator-v9';
 const CACHE_KEYS_KEY = `${CACHE_VERSION}:keys`;
 const MAX_PERSISTED_CACHE_ENTRIES = 8;
 const memoryCache = new Map<string, UnitCacheEntry>();
+const BATCH_EPSILON = 1e-9;
 
 function itemKey(resource: string, metadata = 0): string {
   return `${resource}:${metadata}`;
@@ -111,7 +112,11 @@ function simResourceId(resource: SimResource): string {
 }
 
 function unitCacheKey(target: SimResource, settings: Required<SimulationSettings>): string {
-  return `${CACHE_VERSION}:${settings.maxTier}:${settings.maxOptions}:${settings.accessibleDimensions.join(',')}:${simResourceId(target)}`;
+  const preferenceKey = Object.entries(settings.routePreferences)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([resourceId, recipeId]) => `${resourceId}=${recipeId}`)
+    .join('|');
+  return `${CACHE_VERSION}:${settings.maxTier}:${settings.maxOptions}:${settings.accessibleDimensions.join(',')}:${preferenceKey}:${simResourceId(target)}`;
 }
 
 function canUseStorage(): boolean {
@@ -298,9 +303,20 @@ function isKnownFeedstockItem(resource: SimResource, context: SimulationContext)
     !/\b(ore|block|facade|plate|rod|wire|gear|pipe|casing|hull|machine)\b/.test(text);
 }
 
+function isKnownFluxItem(resource: SimResource, context: SimulationContext): boolean {
+  if (resource.type !== 'item') return false;
+  const text = resourceText(resource, context);
+  return /\b(limestone|calcite|dolomite|quicklime)\b/.test(text) &&
+    /\b(dust|small pile|tiny pile)\b/.test(text) &&
+    !/\b(ore|block|facade|plate|rod|wire|gear|pipe|casing|hull|machine)\b/.test(text);
+}
+
 function baseResourceNote(resource: SimResource, context: SimulationContext): string | undefined {
   if (isKnownFeedstockItem(resource, context)) {
     return 'known carbon feedstock; choose coal, charcoal, coke, or dust variant by recipe efficiency';
+  }
+  if (isKnownFluxItem(resource, context)) {
+    return 'known flux material';
   }
   return oreSourceNote(resource, context);
 }
@@ -331,6 +347,7 @@ function classifyTerminalResource(
   if (isMachineItem(resource)) return 'blocked';
   if (isReusableToolItem(resource, context)) return 'setup';
   if (isKnownFeedstockItem(resource, context)) return 'base';
+  if (isKnownFluxItem(resource, context)) return 'base';
   if (hasAccessibleOreSource(resource, context)) return 'base';
   if (isRawOreItem(resource, context)) return 'blocked';
   if (resource.type === 'fluid') return isBaseFluid(resource) ? 'base' : 'blocked';
@@ -428,7 +445,7 @@ function getOutputAmount(loaded: LoadedRecipe, target: SimResource, context: Sim
 }
 
 function roundAmount(amount: number): number {
-  return Math.ceil(amount * 1000) / 1000;
+  return Math.round((amount + Number.EPSILON) * 1_000_000_000_000) / 1_000_000_000_000;
 }
 
 function scaleAmount(amount: number, batches: number): number {
@@ -464,19 +481,48 @@ function scaleIngredient(ingredient: SimIngredient, factor: number): SimIngredie
   };
 }
 
-function scaleOption(option: SimRecipeOption, factor: number): SimRecipeOption {
+function scaleOption(option: SimRecipeOption, factor: number, wholeBatches = false): SimRecipeOption {
+  let effectiveFactor = factor;
+  let targetAmount = roundAmount(option.targetAmount * factor);
+  let batches = option.batches * factor;
+
+  if (wholeBatches && option.outputAmount > 0) {
+    const roundedBatches = Math.max(1, Math.ceil(batches - BATCH_EPSILON));
+    targetAmount = roundAmount(option.outputAmount * roundedBatches);
+    effectiveFactor = option.targetAmount > 0 ? targetAmount / option.targetAmount : factor;
+    batches = roundedBatches;
+  }
+
+  const scaledChildren = option.children.map(child => ({
+    ingredient: scaleIngredient(child.ingredient, effectiveFactor),
+    plan: child.plan ? scaleOption(child.plan, effectiveFactor, wholeBatches) : null,
+    status: child.status,
+  }));
+  const scaledBaseInputs: SimIngredient[] = [];
+  const scaledLoopInputs: SimIngredient[] = [];
+  for (const child of scaledChildren) {
+    if (child.plan) {
+      for (const baseInput of child.plan.baseInputs) addIngredient(scaledBaseInputs, baseInput);
+      for (const loopInput of child.plan.loopInputs) addIngredient(scaledLoopInputs, loopInput);
+    } else if (child.status === 'base') {
+      const baseMatch = option.baseInputs.find(input => resourcesEqual(input.resource, child.ingredient.resource));
+      addIngredient(scaledBaseInputs, {
+        ...child.ingredient,
+        note: baseMatch?.note || child.ingredient.note,
+      });
+    } else if (child.status === 'loop') {
+      addIngredient(scaledLoopInputs, child.ingredient);
+    }
+  }
+
   return {
     ...option,
-    id: `${option.id}:x${factor}`,
-    targetAmount: roundAmount(option.targetAmount * factor),
-    batches: option.batches * factor,
-    inputs: option.inputs.map(input => scaleIngredient(input, factor)),
+    id: `${option.id}:x${effectiveFactor}`,
+    targetAmount,
+    batches,
+    inputs: option.inputs.map(input => scaleIngredient(input, effectiveFactor)),
     catalysts: option.catalysts.map(catalyst => ({ ...catalyst })),
-    children: option.children.map(child => ({
-      ingredient: scaleIngredient(child.ingredient, factor),
-      plan: child.plan ? scaleOption(child.plan, factor) : null,
-      status: child.status,
-    })),
+    children: scaledChildren,
     setupInputs: aggregateIngredients(option.setupInputs.map(input => ({ ...input }))),
     setupBaseInputs: aggregateIngredients(option.setupBaseInputs.map(input => ({ ...input }))),
     setupChildren: option.setupChildren.map(child => ({
@@ -484,11 +530,15 @@ function scaleOption(option: SimRecipeOption, factor: number): SimRecipeOption {
       plan: child.plan,
       status: child.status,
     })),
-    loopInputs: aggregateIngredients(option.loopInputs.map(input => ({ ...input }))),
-    baseInputs: aggregateIngredients(option.baseInputs.map(input => scaleIngredient(input, factor))),
-    totalEU: option.totalEU * factor,
-    score: option.score * factor,
-    alternatives: option.alternatives?.map(alternative => scalePlanAlternative(alternative, factor)),
+    loopInputs: scaledLoopInputs.length > 0
+      ? aggregateIngredients(scaledLoopInputs)
+      : aggregateIngredients(option.loopInputs.map(input => scaleIngredient(input, effectiveFactor))),
+    baseInputs: scaledBaseInputs.length > 0
+      ? aggregateIngredients(scaledBaseInputs)
+      : aggregateIngredients(option.baseInputs.map(input => scaleIngredient(input, effectiveFactor))),
+    totalEU: option.totalEU * effectiveFactor,
+    score: option.score * effectiveFactor,
+    alternatives: option.alternatives?.map(alternative => scalePlanAlternative(alternative, effectiveFactor, wholeBatches)),
   };
 }
 
@@ -673,9 +723,20 @@ function getRecipeRequirements(loaded: LoadedRecipe, batches: number, context: S
   };
 }
 
-function baseCost(ingredient: SimIngredient): number {
-  const unitAmount = ingredient.resource.type === 'fluid' ? ingredient.amount / 1000 : ingredient.amount;
-  return Math.max(unitAmount, 0.01);
+function baseCost(ingredient: SimIngredient, context: SimulationContext): number {
+  if (ingredient.resource.type === 'fluid') {
+    const bucketAmount = ingredient.amount / 1000;
+    return isBaseFluid(ingredient.resource) ? Math.max(bucketAmount * 0.05, 0.001) : Math.max(bucketAmount, 0.01);
+  }
+
+  let weight = 4;
+  if (hasAccessibleOreSource(ingredient.resource, context) || isRawOreItem(ingredient.resource, context)) {
+    weight = 25;
+  } else if (isKnownFeedstockItem(ingredient.resource, context)) {
+    weight = 8;
+  }
+
+  return Math.max(ingredient.amount * weight, 0.01);
 }
 
 function recipeLabel(loaded: LoadedRecipe): string {
@@ -712,7 +773,8 @@ function recipeProcessPenalty(
   let penalty = 0;
 
   if (loaded.ref.type === 'crafting') penalty += 1.5;
-  if (label.includes('primitive')) penalty += 8;
+  if (label.includes('primitive')) penalty += 80;
+  if (label.includes('cupola')) penalty += 40;
   if (label.includes('scrap') || label.includes('salvag')) penalty += 40;
   if (label.includes('compressor') || label.includes('packer')) penalty += 3;
 
@@ -745,14 +807,23 @@ function makePlanAlternative(option: SimRecipeOption, factor = 1): SimPlanAltern
   };
 }
 
-function scalePlanAlternative(alternative: SimPlanAlternative, factor: number): SimPlanAlternative {
+function scalePlanAlternative(alternative: SimPlanAlternative, factor: number, wholeBatches = false): SimPlanAlternative {
+  let effectiveFactor = factor;
+  let outputAmount = roundAmount(alternative.outputAmount * factor);
+  if (wholeBatches && alternative.outputAmount > 0) {
+    const requestedBatches = factor / alternative.outputAmount;
+    const roundedBatches = Math.max(1, Math.ceil(requestedBatches - BATCH_EPSILON));
+    outputAmount = roundAmount(alternative.outputAmount * roundedBatches);
+    effectiveFactor = outputAmount;
+  }
+
   return {
     ...alternative,
-    totalEU: alternative.totalEU * factor,
-    score: alternative.score * factor,
-    outputAmount: roundAmount(alternative.outputAmount * factor),
-    inputs: alternative.inputs.map(input => scaleIngredient(input, factor)),
-    baseInputs: alternative.baseInputs.map(input => scaleIngredient(input, factor)),
+    totalEU: alternative.totalEU * effectiveFactor,
+    score: alternative.score * effectiveFactor,
+    outputAmount,
+    inputs: alternative.inputs.map(input => scaleIngredient(input, effectiveFactor)),
+    baseInputs: alternative.baseInputs.map(input => scaleIngredient(input, effectiveFactor)),
     setupInputs: alternative.setupInputs.map(input => ({ ...input })),
     loopInputs: alternative.loopInputs.map(input => ({ ...input })),
   };
@@ -768,14 +839,50 @@ function attachAlternativeSummaries(options: SimRecipeOption[]): SimRecipeOption
   }));
 }
 
-function chooseDiverseOptions(options: SimRecipeOption[], keepCount: number): SimRecipeOption[] {
+function orderScaledOptions(
+  options: SimRecipeOption[],
+  target: SimResource,
+  settings: Required<SimulationSettings>,
+): SimRecipeOption[] {
+  const preferredId = settings.routePreferences[simResourceId(target)];
+  return [...options].sort((a, b) => {
+    const aPreferred = preferredId ? a.id.startsWith(preferredId) : false;
+    const bPreferred = preferredId ? b.id.startsWith(preferredId) : false;
+    if (aPreferred !== bPreferred) return aPreferred ? -1 : 1;
+    return a.score - b.score;
+  });
+}
+
+function optionRouteKey(option: SimRecipeOption): string {
+  const inputKey = option.inputs
+    .slice(0, 3)
+    .map(input => input.resource.key)
+    .join(',');
+  return `${option.recipeLabel}:${option.tier ?? ''}:${inputKey}`;
+}
+
+function chooseDiverseOptions(
+  options: SimRecipeOption[],
+  keepCount: number,
+  resource: SimResource,
+  context: SimulationContext,
+): SimRecipeOption[] {
   const sorted = [...options].sort((a, b) => a.score - b.score);
   const selected: SimRecipeOption[] = [];
   const selectedIds = new Set<string>();
   const seenRoutes = new Set<string>();
+  const preferredId = context.settings.routePreferences[simResourceId(resource)];
+  const preferred = preferredId ? sorted.find(option => option.id === preferredId) : undefined;
+
+  if (preferred) {
+    selected.push(preferred);
+    selectedIds.add(preferred.id);
+    seenRoutes.add(optionRouteKey(preferred));
+  }
 
   for (const option of sorted) {
-    const routeKey = `${option.recipeLabel}:${option.tier ?? ''}`;
+    if (selectedIds.has(option.id)) continue;
+    const routeKey = optionRouteKey(option);
     if (seenRoutes.has(routeKey)) continue;
     selected.push(option);
     selectedIds.add(option.id);
@@ -893,7 +1000,7 @@ async function resolveIngredientCandidate(
       addIngredient(loopInputs, terminal);
     } else {
       addIngredient(baseInputs, terminal);
-      score += baseCost(ingredient);
+      score += baseCost(ingredient, context);
     }
   }
 
@@ -1104,7 +1211,7 @@ async function solveResourceUnit(
   }
 
   const keepCount = Math.max(context.settings.maxOptions, 12);
-  const sorted = attachAlternativeSummaries(chooseDiverseOptions(options, keepCount));
+  const sorted = attachAlternativeSummaries(chooseDiverseOptions(options, keepCount, resource, context));
 
   const result = {
     options: sorted,
@@ -1156,6 +1263,7 @@ function normalizeSettings(settings: SimulationSettings): Required<SimulationSet
     accessibleDimensions: settings.accessibleDimensions?.length
       ? [...new Set(settings.accessibleDimensions)].sort((a, b) => a - b)
       : DEFAULT_ACCESSIBLE_DIMENSIONS,
+    routePreferences: settings.routePreferences || {},
   };
 }
 
@@ -1188,7 +1296,11 @@ export async function simulateRecipeChain(
     return {
       target,
       amount,
-      options: cached.options.slice(0, settings.maxOptions).map(option => scaleOption(option, amount)),
+      options: orderScaledOptions(
+        cached.options.slice(0, settings.maxOptions).map(option => scaleOption(option, amount, true)),
+        target,
+        settings,
+      ),
       warnings: cached.warnings,
       fromCache: true,
     };
@@ -1236,7 +1348,11 @@ export async function simulateRecipeChain(
     currentResource: target.displayName,
   });
 
-  const options = unitOptions.slice(0, settings.maxOptions).map(option => scaleOption(option, amount));
+  const options = orderScaledOptions(
+    unitOptions.slice(0, settings.maxOptions).map(option => scaleOption(option, amount, true)),
+    target,
+    settings,
+  );
   progress?.({
     phase: 'done',
     message: 'Simulation complete.',

@@ -29,6 +29,8 @@ type TargetSuggestion = SimResource & {
   description: string;
 };
 
+type RoutePreferenceHandler = (resource: SimResource, recipeId: string) => void;
+
 const DEFAULT_TARGET: SimResource = {
   type: 'item',
   key: 'minecraft:iron_ingot:0',
@@ -41,13 +43,19 @@ const WORLD_ACCESS_OPTIONS = [
   { id: 'all', label: 'All incl. Nether', dimensions: [0, 10, -1] },
 ];
 
+function cleanDisplayAmount(amount: number): number {
+  const rounded = Math.round(amount);
+  return Math.abs(amount - rounded) < 0.001 ? rounded : amount;
+}
+
 function formatAmount(resource: SimResource, amount: number, wholeItems = false): string {
+  const cleanedAmount = cleanDisplayAmount(amount);
   if (resource.type === 'fluid') {
-    if (amount >= 1000) return `${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 2)} B`;
-    return `${amount.toFixed(amount % 1 === 0 ? 0 : 2)} mB`;
+    if (cleanedAmount >= 1000) return `${(cleanedAmount / 1000).toFixed(cleanedAmount % 1000 === 0 ? 0 : 2)} B`;
+    return `${cleanedAmount.toFixed(cleanedAmount % 1 === 0 ? 0 : 2)} mB`;
   }
-  if (wholeItems) return Math.ceil(amount).toLocaleString();
-  return amount.toFixed(amount % 1 === 0 ? 0 : 2);
+  if (wholeItems) return Math.ceil(cleanedAmount).toLocaleString();
+  return cleanedAmount.toFixed(cleanedAmount % 1 === 0 ? 0 : 2);
 }
 
 function parseItemKey(key: string): { resource: string; metadata: number } {
@@ -56,6 +64,14 @@ function parseItemKey(key: string): { resource: string; metadata: number } {
     resource: key.slice(0, splitAt),
     metadata: Number(key.slice(splitAt + 1)) || 0,
   };
+}
+
+function resourcePreferenceKey(resource: SimResource): string {
+  return `${resource.type}:${resource.key}`;
+}
+
+function formatBatches(batches: number): string {
+  return batches.toFixed(batches % 1 === 0 ? 0 : 2);
 }
 
 function renderLoadedRecipe(loaded: LoadedRecipe) {
@@ -153,14 +169,26 @@ function childStatusText(child: { plan: SimRecipeOption | null; status?: string 
   return '(base input)';
 }
 
-function AlternativeRow({ alternative }: { alternative: SimPlanAlternative }) {
+function AlternativeRow({
+  alternative,
+  rank,
+  option,
+  onChooseRoute,
+  disabled = false,
+}: {
+  alternative: SimPlanAlternative;
+  rank: number;
+  option: SimRecipeOption;
+  onChooseRoute?: RoutePreferenceHandler;
+  disabled?: boolean;
+}) {
   const baseSummary = summarizeIngredients(alternative.baseInputs, 3, true);
   const inputSummary = summarizeIngredients(alternative.inputs, 3, true);
   return (
-    <div className="grid gap-2 border-t border-gray-800 px-3 py-2 text-sm first:border-t-0 md:grid-cols-[1.3fr_1.7fr_auto]">
+    <div className="grid gap-2 border-t border-gray-800 px-3 py-2 text-sm first:border-t-0 md:grid-cols-[1.3fr_1.7fr_auto_auto]">
       <div>
         <div className="font-medium text-gray-200">
-          {humanizeRecipeLabel(alternative.recipeLabel)}{alternative.tier ? ` (${alternative.tier})` : ''}
+          {rank}. {humanizeRecipeLabel(alternative.recipeLabel)}{alternative.tier ? ` (${alternative.tier})` : ''}
         </div>
         <div className="text-xs text-gray-500">{processGroup(alternative.recipeLabel)}</div>
       </div>
@@ -177,11 +205,29 @@ function AlternativeRow({ alternative }: { alternative: SimPlanAlternative }) {
         <div>score {alternative.score.toFixed(2)}</div>
         {alternative.totalEU > 0 && <div>{Math.round(alternative.totalEU).toLocaleString()} EU</div>}
       </div>
+      <div className="flex items-center justify-end">
+        <button
+          type="button"
+          onClick={() => onChooseRoute?.(option.target, alternative.id)}
+          disabled={!onChooseRoute || disabled}
+          className="rounded border border-cyan-700 px-3 py-1 text-xs font-medium text-cyan-200 hover:bg-cyan-950/60 disabled:cursor-not-allowed disabled:border-gray-700 disabled:text-gray-500"
+        >
+          Use
+        </button>
+      </div>
     </div>
   );
 }
 
-function AlternativeProcesses({ option }: { option: SimRecipeOption }) {
+function AlternativeProcesses({
+  option,
+  onChooseRoute,
+  disabled = false,
+}: {
+  option: SimRecipeOption;
+  onChooseRoute?: RoutePreferenceHandler;
+  disabled?: boolean;
+}) {
   if (!option.alternatives || option.alternatives.length === 0) return null;
   return (
     <details className="rounded border border-gray-700 bg-gray-900">
@@ -189,8 +235,15 @@ function AlternativeProcesses({ option }: { option: SimRecipeOption }) {
         Other ways to make this step ({option.alternatives.length})
       </summary>
       <div className="border-t border-gray-700">
-        {option.alternatives.map(alternative => (
-          <AlternativeRow key={alternative.id} alternative={alternative} />
+        {option.alternatives.map((alternative, index) => (
+          <AlternativeRow
+            key={alternative.id}
+            alternative={alternative}
+            rank={index + 1}
+            option={option}
+            onChooseRoute={onChooseRoute}
+            disabled={disabled}
+          />
         ))}
       </div>
     </details>
@@ -205,7 +258,7 @@ function PlanNode({ option }: { option: SimRecipeOption }) {
           <div className="font-medium text-gray-100">{humanizeRecipeLabel(option.recipeLabel)}</div>
           <div className="text-xs text-gray-500">
             Makes {formatAmount(option.target, option.targetAmount)} {option.target.displayName}
-            {option.batches !== 1 ? ` in ${option.batches.toFixed(2)} batches` : ''}
+            {option.batches !== 1 ? ` in ${formatBatches(option.batches)} batches` : ''}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
@@ -287,12 +340,19 @@ interface SimStep {
   label: string;
 }
 
-function collectSteps(option: SimRecipeOption, steps: SimStep[] = [], seen = new Set<string>()): SimStep[] {
-  for (const child of option.setupChildren) {
-    if (child.plan) collectSteps(child.plan, steps, seen);
+function collectSteps(
+  option: SimRecipeOption,
+  steps: SimStep[] = [],
+  seen = new Set<string>(),
+  includeSetup = true,
+): SimStep[] {
+  if (includeSetup) {
+    for (const child of option.setupChildren) {
+      if (child.plan) collectSteps(child.plan, steps, seen, true);
+    }
   }
   for (const child of option.children) {
-    if (child.plan) collectSteps(child.plan, steps, seen);
+    if (child.plan) collectSteps(child.plan, steps, seen, includeSetup);
   }
 
   const id = `${option.id}:${option.target.type}:${option.target.key}`;
@@ -307,9 +367,28 @@ function collectSteps(option: SimRecipeOption, steps: SimStep[] = [], seen = new
   return steps;
 }
 
-function StepCard({ step }: { step: SimStep }) {
+function collectSetupSteps(option: SimRecipeOption, steps: SimStep[] = [], seen = new Set<string>()): SimStep[] {
+  for (const child of option.setupChildren) {
+    if (child.plan) collectSteps(child.plan, steps, seen, true);
+  }
+  for (const child of option.children) {
+    if (child.plan) collectSetupSteps(child.plan, steps, seen);
+  }
+  return steps;
+}
+
+function StepCard({
+  step,
+  onChooseRoute,
+  choosingRoute,
+}: {
+  step: SimStep;
+  onChooseRoute?: RoutePreferenceHandler;
+  choosingRoute?: boolean;
+}) {
   const option = step.option;
   const setupSummary = summarizeIngredients([...option.setupInputs, ...option.setupBaseInputs], 4, true);
+  const setupSummaryFull = summarizeIngredients([...option.setupInputs, ...option.setupBaseInputs], 999, true);
   return (
     <div className="rounded border border-gray-700 bg-gray-850">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-700 bg-gray-900 px-4 py-3">
@@ -317,7 +396,7 @@ function StepCard({ step }: { step: SimStep }) {
           <div className="font-medium text-gray-100">{step.label}</div>
           <div className="text-xs text-gray-500">
             {processGroup(option.recipeLabel)} - {humanizeRecipeLabel(option.recipeLabel)}
-            {option.batches !== 1 ? ` - ${option.batches.toFixed(2)} batches` : ''}
+            {option.batches !== 1 ? ` - ${formatBatches(option.batches)} batches` : ''}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
@@ -327,12 +406,15 @@ function StepCard({ step }: { step: SimStep }) {
       </div>
       <div className="space-y-4 p-4">
         {setupSummary && (
-          <div className="rounded border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-sm text-amber-200">
+          <div
+            className="rounded border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-sm text-amber-200"
+            title={setupSummaryFull}
+          >
             1-time setup costs {setupSummary} extra.
           </div>
         )}
 
-        <AlternativeProcesses option={option} />
+        <AlternativeProcesses option={option} onChooseRoute={onChooseRoute} disabled={choosingRoute} />
 
         {renderLoadedRecipe(option.loadedRecipe)}
 
@@ -366,8 +448,21 @@ function StepCard({ step }: { step: SimStep }) {
   );
 }
 
-function StepPager({ option }: { option: SimRecipeOption }) {
-  const steps = useMemo(() => collectSteps(option), [option]);
+function StepPager({
+  option,
+  mode = 'production',
+  onChooseRoute,
+  choosingRoute,
+}: {
+  option: SimRecipeOption;
+  mode?: 'production' | 'setup' | 'merged';
+  onChooseRoute?: RoutePreferenceHandler;
+  choosingRoute?: boolean;
+}) {
+  const steps = useMemo(() => {
+    if (mode === 'setup') return collectSetupSteps(option);
+    return collectSteps(option, [], new Set<string>(), mode === 'merged');
+  }, [mode, option]);
   const [stepIndex, setStepIndex] = useState(0);
   const currentStep = steps[Math.min(stepIndex, steps.length - 1)];
 
@@ -400,14 +495,27 @@ function StepPager({ option }: { option: SimRecipeOption }) {
           </button>
         </div>
       </div>
-      <StepCard step={currentStep} />
+      <StepCard step={currentStep} onChooseRoute={onChooseRoute} choosingRoute={choosingRoute} />
     </div>
   );
 }
 
-function OptionSummary({ option, index }: { option: SimRecipeOption; index: number }) {
+function OptionSummary({
+  option,
+  index,
+  onChooseRoute,
+  choosingRoute,
+}: {
+  option: SimRecipeOption;
+  index: number;
+  onChooseRoute?: RoutePreferenceHandler;
+  choosingRoute?: boolean;
+}) {
+  const [mergeSetup, setMergeSetup] = useState(false);
   const routeLabels = collectRouteLabels(option).slice(0, 4);
   const setupSummary = summarizeIngredients([...option.setupInputs, ...option.setupBaseInputs], 4, true);
+  const setupSummaryFull = summarizeIngredients([...option.setupInputs, ...option.setupBaseInputs], 999, true);
+  const setupStepCount = useMemo(() => collectSetupSteps(option).length, [option]);
   return (
     <section className="rounded-lg border border-gray-700 bg-gray-800">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-700 px-4 py-3">
@@ -417,7 +525,9 @@ function OptionSummary({ option, index }: { option: SimRecipeOption; index: numb
             Option {index + 1} - {routeLabels.join(' -> ')} - score {option.score.toFixed(2)}
           </p>
           {setupSummary && (
-            <p className="mt-1 text-xs text-amber-300">1-time setup costs {setupSummary} extra.</p>
+            <p className="mt-1 text-xs text-amber-300" title={setupSummaryFull}>
+              1-time setup costs {setupSummary} extra.
+            </p>
           )}
         </div>
         <div className="flex flex-wrap gap-2 text-xs text-gray-300">
@@ -499,7 +609,45 @@ function OptionSummary({ option, index }: { option: SimRecipeOption; index: numb
           </div>
         )}
 
-        <StepPager key={option.id} option={option} />
+        {setupStepCount > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-700 bg-gray-900 px-4 py-3 text-sm text-gray-300">
+            <span>{setupStepCount} one-time setup step{setupStepCount === 1 ? '' : 's'}</span>
+            <label className="inline-flex items-center gap-2 text-xs text-gray-400">
+              <input
+                type="checkbox"
+                checked={mergeSetup}
+                onChange={event => setMergeSetup(event.target.checked)}
+                className="h-4 w-4 rounded border-gray-600 bg-gray-900"
+              />
+              Merge setup into production steps
+            </label>
+          </div>
+        )}
+
+        {!mergeSetup && setupStepCount > 0 && (
+          <details className="rounded border border-gray-700 bg-gray-900">
+            <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-gray-300">
+              One-time setup steps
+            </summary>
+            <div className="border-t border-gray-700 p-4">
+              <StepPager
+                key={`${option.id}:setup`}
+                option={option}
+                mode="setup"
+                onChooseRoute={onChooseRoute}
+                choosingRoute={choosingRoute}
+              />
+            </div>
+          </details>
+        )}
+
+        <StepPager
+          key={`${option.id}:${mergeSetup ? 'merged' : 'production'}`}
+          option={option}
+          mode={mergeSetup ? 'merged' : 'production'}
+          onChooseRoute={onChooseRoute}
+          choosingRoute={choosingRoute}
+        />
 
         <details className="rounded border border-gray-700 bg-gray-900">
           <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-gray-300">Full Chain</summary>
@@ -524,6 +672,8 @@ function SimulationPage() {
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [progress, setProgress] = useState<SimulationProgress | null>(null);
   const [loading, setLoading] = useState(false);
+  const [choosingRoute, setChoosingRoute] = useState(false);
+  const [routePreferences, setRoutePreferences] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -559,10 +709,11 @@ function SimulationPage() {
     return [...items, ...fluids].slice(0, 12);
   }, [fluidSearchData, itemSearchData, query]);
 
-  const runSimulation = async () => {
+  const runSimulation = async (preferences = routePreferences) => {
     const numericAmount = Number(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       setError('Amount must be greater than zero.');
+      setChoosingRoute(false);
       return;
     }
     setLoading(true);
@@ -579,6 +730,7 @@ function SimulationPage() {
         maxTier,
         maxOptions: Math.max(1, Number(maxOptions) || 4),
         accessibleDimensions: WORLD_ACCESS_OPTIONS.find(option => option.id === worldAccess)?.dimensions || [0],
+        routePreferences: preferences,
       }, setProgress);
       setResult(simulation);
     } catch (err) {
@@ -586,8 +738,27 @@ function SimulationPage() {
       setResult(null);
     } finally {
       setLoading(false);
+      setChoosingRoute(false);
     }
   };
+
+  const chooseRoute: RoutePreferenceHandler = (resource, recipeId) => {
+    const nextPreferences = {
+      ...routePreferences,
+      [resourcePreferenceKey(resource)]: recipeId,
+    };
+    setRoutePreferences(nextPreferences);
+    setChoosingRoute(true);
+    void runSimulation(nextPreferences);
+  };
+
+  const clearRoutePreferences = () => {
+    setRoutePreferences({});
+    setChoosingRoute(true);
+    void runSimulation({});
+  };
+
+  const preferenceCount = Object.keys(routePreferences).length;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -671,7 +842,7 @@ function SimulationPage() {
 
           <div className="flex items-end">
             <button
-              onClick={runSimulation}
+              onClick={() => void runSimulation()}
               disabled={loading}
               className="inline-flex h-10 items-center gap-2 rounded bg-cyan-600 px-4 font-medium text-white transition hover:bg-cyan-500 disabled:cursor-wait disabled:bg-gray-600"
             >
@@ -681,8 +852,20 @@ function SimulationPage() {
           </div>
         </div>
 
-        <div className="mt-3 text-xs text-gray-500">
-          Depth is automatic. The simulator checks every recipe at or below the selected stage, then caches the solved unit chain so later amounts can be scaled quickly.
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500">
+          <span>
+            Depth is automatic. The simulator checks every recipe at or below the selected stage, then caches the solved unit chain so later amounts can be scaled quickly.
+          </span>
+          {preferenceCount > 0 && (
+            <button
+              type="button"
+              onClick={clearRoutePreferences}
+              disabled={loading}
+              className="rounded border border-gray-700 px-2 py-1 text-gray-300 hover:bg-gray-900 disabled:cursor-wait disabled:opacity-50"
+            >
+              Clear {preferenceCount} chosen route{preferenceCount === 1 ? '' : 's'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -732,7 +915,13 @@ function SimulationPage() {
             </div>
           ) : (
             result.options.map((option, index) => (
-              <OptionSummary key={option.id} option={option} index={index} />
+              <OptionSummary
+                key={option.id}
+                option={option}
+                index={index}
+                onChooseRoute={chooseRoute}
+                choosingRoute={loading || choosingRoute}
+              />
             ))
           )}
         </div>
